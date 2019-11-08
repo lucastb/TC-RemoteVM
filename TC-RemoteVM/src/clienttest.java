@@ -1,5 +1,7 @@
 
-import com.sun.xml.ws.commons.virtualbox{VBOX_API_SUFFIX}.*;
+
+//import com.sun.xml.ws.commons.virtualbox{VBOX_API_SUFFIX}.*;
+import org.virtualbox_6_0.*;
 import javax.xml.ws.WebServiceException;
 
 import java.util.*;

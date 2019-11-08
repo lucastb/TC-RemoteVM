@@ -1,10 +1,14 @@
-//https://docs.oracle.com/cd/E17802_01/webservices/webservices/docs/2.0/tutorial/doc/JAXWS3.html
+//	feature						effort		user-loveit		revenue
+//  priorizar por recurso		2			 	
+//	parâmetros					1			
+//	parametro exibir console	
+//	parametro serv arquivos		
+//	parametro lista ips			
+//	
 
-/* $Id: TestVBox.java 127855 2019-01-01 01:45:53Z bird $ */
-/*! file
- * Small sample/testcase which demonstrates that the same source code can
- * be used to connect to the webservice and (XP)COM APIs.
- */
+//	Objetivo => Implementar três vms com apache e conectar nelas
+//	
+//	https://docs.oracle.com/cd/E17802_01/webservices/webservices/docs/2.0/tutorial/doc/JAXWS3.html
 
 import org.apache.log4j.BasicConfigurator;
 import org.virtualbox_6_0.*;
@@ -43,56 +47,159 @@ import javax.swing.JOptionPane;
 
 public class Programa {
 
-	static void testEnumeration(VirtualBoxManager manager, IVirtualBox vBoxSVC) {
-
-		List<IMachine> machs = vBoxSVC.getMachines();
-
-		for (IMachine m : machs) {
-			String name;
-			Long ram = 0L;
-			boolean hwvirtEnabled = false, hwvirtNestedPaging = false;
-			boolean paeEnabled = false;
-			boolean inaccessible = false;
-			// System.out.println("Iterador: " + vBoxSVC.getMachines().listIterator());
-
-			try {
-				name = m.getName();
-				ram = m.getMemorySize();
-				List<IMediumAttachment> im = m.getMediumAttachments();
-				for (IMediumAttachment ima : im) {
-					System.out.println("IMa  " + ima);
-				}
-				hwvirtEnabled = m.getHWVirtExProperty(HWVirtExPropertyType.Enabled);
-				hwvirtNestedPaging = m.getHWVirtExProperty(HWVirtExPropertyType.NestedPaging);
-				paeEnabled = m.getCPUProperty(CPUPropertyType.PAE);
-				String osType = m.getOSTypeId();
-				IGuestOSType foo = vBoxSVC.getGuestOSType(osType);
-				// System.out.println("Foo = " + foo);
-			} catch (VBoxException e) {
-				name = "<inaccessible>";
-				inaccessible = true;
-			}
-			// System.out.println("VM name: " + name + "\n");
-			if (!inaccessible) {
-				MachineState state = m.getState();
-				String estado = state.name();
-				System.out.println("\nNome: " + name + "\nEstado: " + estado + "\nRAM: " + ram + "MB" + "\nHWVirt: "
-						+ hwvirtEnabled + "\nPaginação aninhada: " + hwvirtNestedPaging
-						+ "\nExtensão de Endereço Físico: " + paeEnabled);
-			}
-		}
-		// process system event queue
-		manager.waitForEvents(0);
-	}
-
-	// IMachine ISession
-	// Unlocked =
+//	IMachine ISession
+//	Unlocked =
 
 //	The caller’s session object can then be used as a sort of remote control to the VM process that
 //	was launched. It contains a “console” object (see ISession::console) with which the VM can be
 //	paused, stopped, snapshotted or other things.
 
 	// O objeto sessão tem um objeto console.
+
+	public static String ipServidorArquivos;
+	public static String pastaCompartilhada;
+
+	public static SharedConnection conectarServidorArquivos(String ipServidorArquivos, String pastaCompartilhada) {
+		// this.ipServidorArquivos = ipServidorArquivos;
+		// this.pastaCompartilhada = pastaCompartilhada;
+
+		// Conecta num servidor de arquivos que permite acesso público.
+		AuthenticationContext authenticationContext = AuthenticationContext.anonymous();
+		System.out.println("Conectando à pasta compartilhada \\\\" + ipServidorArquivos + "\\" + pastaCompartilhada);
+		try {
+			SharedConnection sharedConnection = new SharedConnection(ipServidorArquivos, pastaCompartilhada,
+					authenticationContext);
+			System.out.println("Conectado à pasta compartilhada \\\\" + ipServidorArquivos + "\\" + pastaCompartilhada);
+			return sharedConnection;
+		} catch (IOException e) {
+			System.out.println("\nNão foi possível se conectar à pasta compartilhada.");
+			return null;
+		}
+	}
+
+	public static void listarAppliances(String ipServidorArquivos, String pastaCompartilhada) {
+		SharedConnection conexaoCompartilhada = conectarServidorArquivos(ipServidorArquivos, pastaCompartilhada);
+		if (conexaoCompartilhada != null) {
+			SharedDirectory diretorioRaiz = new SharedDirectory(conexaoCompartilhada);
+			for (SharedFile arquivoCompartilhado : diretorioRaiz.getFiles()) {
+				System.out.println("\nLista de Appliance(s) :\n" + arquivoCompartilhado.getName());
+			}
+		} else {
+			System.out.println("Não foi possível listar os arquivos.");
+		}
+	}
+
+	public static VirtualBoxManager conectarWS(String ipHost) {
+
+		// Cada instância de VirtualBoxManager é um host com o VirtualBox
+		VirtualBoxManager manager = VirtualBoxManager.createInstance(null);
+
+		String porta = "18083";
+		String url = "http://" + ipHost + ":" + porta;
+		System.out.println("url = " + url);
+		String usuario = null;
+		String senha = null;
+		// IWebsessionManager wsm = new IWebsessionManager()
+
+		System.out.println("\nConectando em " + url + " com usuário " + usuario + " e senha " + senha + "...");
+		try {
+			manager.connect(url, usuario, senha);
+			System.out.println("\nCliente conectado com sucesso em " + url + " com usuário " + usuario + " e senha "
+					+ senha + ".");
+
+		} catch (VBoxException e) {
+			System.out.println("\nO cliente nao pôde conectar ao webserver " + url + " com usuário " + usuario
+					+ " e senha " + senha + ".");
+		}
+		manager.waitForEvents(0);
+		return manager;
+	}
+
+	/*
+	 * 14.10.2019 - API do WebService do VirtualBox não tem um método que exibe o
+	 * espaço livre em disco. public static long getEspacoLivreDiscoHost(IVirtualBox
+	 * vBoxSVC) { // 08.10.2019 - esta pegando o espaço em disco do host local, ao
+	 * invés do remoto ISystemProperties isp = vBoxSVC.getSystemProperties();
+	 * System.out.println("getDefaultMachineFolder " +
+	 * isp.getDefaultMachineFolder()); String unidade =
+	 * isp.getDefaultMachineFolder().substring(0, 1);
+	 * 
+	 * File file = new File(unidade + ":\\");
+	 * 
+	 * // System.out.println("Espaço Livre: " + file.getFreeSpace()); // // double
+	 * size = file.getFreeSpace() / (1024.0 * 1024 * 1024); // //
+	 * System.out.printf("%.3f GB\n", size);
+	 * 
+	 * return file.getFreeSpace(); }
+	 */
+
+	public static void desconectarWS(VirtualBoxManager manager) {
+		// manager.cleanup();
+		try {
+			manager.disconnect();
+		} catch (VBoxException e) {
+			System.out.println("\nNão foi possível se desconectar do webservice.");
+		}
+	}
+
+	// IP - online - capacidade - (margem)
+	// USO FINAL = (Memória utilizado + Memória Appliance)/Memória Total
+	// {String IP, mem_utilizada, mem_total} - uso_mem_final, mem_appliance
+	
+	public static boolean verificarDisponibilidadeHost(IVirtualBox vBoxSVC, String ipServidorArquivos,
+			String pastaCompartilhada, String caminho) {
+
+		int a, b = 0;
+		a = Integer.parseInt(getMemoriaDisponivelHostEmMB(vBoxSVC));
+		b = Integer.parseInt(
+				getMemoriaAppliance(vBoxSVC, ipServidorArquivos, pastaCompartilhada, "Ubuntu18.04.1_1.0.ova"));
+
+		/*
+		 * 
+		 * 14.10.2019 - API do WebService do VirtualBox não tem um método que exibe o
+		 * espaço livre em disco.
+		 * 
+		 * long c, d = 0; c = getEspacoLivreDiscoHost(vBoxSVC); d =
+		 * Long.parseLong(getTamanhoDiscoVirtualAppliance(vBoxSVC, caminho));
+		 * 
+		 */
+
+		// if (a >= b && c >= d) {
+		if (a >= b) {
+			return true;
+		} else
+			return false;
+
+	}
+
+	public static void listarVM(IVirtualBox vBoxSVC) {
+
+		// IVirtualBox
+		// To enumerate all the virtual machines on the host, use the machines[]
+		// attribute.
+		List<IMachine> lista = vBoxSVC.getMachines();
+		System.out.println("Quantidade de Maquinas Virtuais = " + lista.size());
+
+		for (IMachine m : lista) {
+			System.out.println("\nVM Nome: " + m.getName());
+			System.out.println("RAM: " + m.getMemorySize());
+			System.out.println("Tipo OS: " + m.getOSTypeId());
+			System.out.println("Estado: " + m.getState());
+
+			if (m.getVRDEServer().getEnabled()) {
+				System.out.println("VRDE habilitado.");
+				System.out.println("Porta VRDE: " + m.getVRDEServer().getVRDEProperty("TCP/Ports"));
+				// for (String s : m.getVRDEServer().getVRDEProperties()) {
+				// System.out.println("Propriedade: " + s);
+				// Listar as propriedades do servidor VRDE
+				// System.out.println("Propriedade: " + m.getVRDEServer().getVRDEProperty(s));
+				// }
+			} else {
+				System.out.println("VRDE desabilitado.");
+			}
+		}
+
+	}
 
 	static void ligarVM(VirtualBoxManager manager, IVirtualBox vbox, String machine) {
 
@@ -220,45 +327,28 @@ public class Programa {
 						"\nNúcleos de Processamento: " + h.getProcessorOnlineCoreCount() + "\nProcessadores Lógicos: "
 						+ h.getProcessorOnlineCount());
 	}
-	
+
 	// {IP, online_offline, mem_utilizada, mem_total} - uso_mem_final, mem_appliance
-	// 
-	public class Host{
+	//
+	public class Host {
 		long tamanho_memoria_disponivel;
 		long tamanho_memoria_total;
 		boolean status;
 		String ipAddress;
-		Host(String ipAddress){
-			
+
+		Host(String ipAddress) {
+
 		}
 	}
+
 	public static String getMemoriaTotalHostEmMB(IVirtualBox vBoxSVC) {
 		IHost h = vBoxSVC.getHost();
 		return h.getMemorySize().toString();
 	}
-	
+
 	public static String getMemoriaDisponivelHostEmMB(IVirtualBox vBoxSVC) {
 		IHost h = vBoxSVC.getHost();
 		return h.getMemoryAvailable().toString();
-	}
-
-	public static void listarAppliances(String ipServidorArquivos, String pastaCompartilhada) {
-		AuthenticationContext authenticationContext = AuthenticationContext.anonymous();
-		System.out.println("Conectando à pasta compartilhada \\\\" + ipServidorArquivos + "\\" + pastaCompartilhada);
-		try (SharedConnection sharedConnection = new SharedConnection(ipServidorArquivos, pastaCompartilhada,
-				authenticationContext)
-
-		) {
-			System.out.println("Conectado à pasta compartilhada \\\\" + ipServidorArquivos + "\\" + pastaCompartilhada);
-			SharedDirectory rootDirectory = new SharedDirectory(sharedConnection);
-
-			for (SharedFile sharedFile : rootDirectory.getFiles()) {
-				System.out.println("\nLista de Appliance(s) :\n" + sharedFile.getName());
-			}
-
-		} catch (IOException e) {
-			System.out.println("\nNão foi possível se conectar à pasta compartilhada.");
-		}
 	}
 
 	public static void detalharAppliance(IVirtualBox vbox, String ipServidorArquivos, String pastaCompartilhada,
@@ -322,35 +412,6 @@ public class Programa {
 		catch (VBoxException e) {
 			System.out.println("Erro: " + e);
 		}
-	}
-
-	public static void listarVM(IVirtualBox vBoxSVC) {
-
-		// IVirtualBox
-		// To enumerate all the virtual machines on the host, use the machines[]
-		// attribute.
-		List<IMachine> lista = vBoxSVC.getMachines();
-		System.out.println("Quantidade de Maquinas Virtuais = " + lista.size());
-
-		for (IMachine m : lista) {
-			System.out.println("\nVM Nome: " + m.getName());
-			System.out.println("RAM: " + m.getMemorySize());
-			System.out.println("Tipo OS: " + m.getOSTypeId());
-			System.out.println("Estado: " + m.getState());
-
-			if (m.getVRDEServer().getEnabled()) {
-				System.out.println("VRDE habilitado.");
-				System.out.println("Porta VRDE: " + m.getVRDEServer().getVRDEProperty("TCP/Ports"));
-//				for (String s : m.getVRDEServer().getVRDEProperties()) {
-//					System.out.println("Propriedade: " + s);
-//					Listar as propriedades do servidor VRDE
-//					System.out.println("Propriedade: " + m.getVRDEServer().getVRDEProperty(s));
-//				}
-			} else {
-				System.out.println("VRDE desabilitado.");
-			}
-		}
-
 	}
 
 	public static void removerVM(VirtualBoxManager manager, IVirtualBox vBoxSVC, String machine) {
@@ -486,50 +547,6 @@ public class Programa {
 //			}
 	}
 
-	/*
-	 * 14.10.2019 - API do WebService do VirtualBox não tem um método que exibe o
-	 * espaço livre em disco. public static long getEspacoLivreDiscoHost(IVirtualBox
-	 * vBoxSVC) { // 08.10.2019 - esta pegando o espaço em disco do host local, ao
-	 * invés do remoto ISystemProperties isp = vBoxSVC.getSystemProperties();
-	 * System.out.println("getDefaultMachineFolder " +
-	 * isp.getDefaultMachineFolder()); String unidade =
-	 * isp.getDefaultMachineFolder().substring(0, 1);
-	 * 
-	 * File file = new File(unidade + ":\\");
-	 * 
-	 * // System.out.println("Espaço Livre: " + file.getFreeSpace()); // // double
-	 * size = file.getFreeSpace() / (1024.0 * 1024 * 1024); // //
-	 * System.out.printf("%.3f GB\n", size);
-	 * 
-	 * return file.getFreeSpace(); }
-	 */
-
-	public static boolean verificarDisponibilidadeHost(IVirtualBox vBoxSVC, String ipServidorArquivos,
-			String pastaCompartilhada, String caminho) {
-
-		int a, b = 0;
-		a = Integer.parseInt(getMemoriaDisponivelHostEmMB(vBoxSVC));
-		b = Integer.parseInt(
-				getMemoriaAppliance(vBoxSVC, ipServidorArquivos, pastaCompartilhada, "Ubuntu18.04.1_1.0.ova"));
-
-		/*
-		 * 
-		 * 14.10.2019 - API do WebService do VirtualBox não tem um método que exibe o
-		 * espaço livre em disco.
-		 * 
-		 * long c, d = 0; c = getEspacoLivreDiscoHost(vBoxSVC); d =
-		 * Long.parseLong(getTamanhoDiscoVirtualAppliance(vBoxSVC, caminho));
-		 * 
-		 */
-
-//		if (a >= b && c >= d) {
-		if (a >= b) {
-			return true;
-		} else
-			return false;
-
-	}
-
 	public String oberIPPeloHostname(String hostname) {
 		try {
 			NbtAddress address = NbtAddress.getByName(hostname);
@@ -540,48 +557,13 @@ public class Programa {
 		}
 	}
 
-	public static VirtualBoxManager conectarWS(String ipHost) {
-		// Cada instância de VirtualBoxManager é um host com o VirtualBox
-		VirtualBoxManager manager = VirtualBoxManager.createInstance(null);
-		boolean webserver = true;
-		String porta="18083";
-		String url = "http://" + ipHost + ":" + porta;
-		System.out.println("url = " + url);
-		String usuario = null;
-		String senha = null;
-//		IWebsessionManager wsm = new IWebsessionManager()
-
-		System.out.println("\nConectando em " + url + " com usuário " + usuario + " e senha " + senha + "...");
-		try {
-//			manager.connect("http://10.1.1.26:18083", null, null);
-			manager.connect(url, usuario, senha);
-			System.out.println("\nCliente conectado com sucesso em " + url + " com usuário " + usuario + " e senha "
-					+ senha + ".");
-
-		} catch (VBoxException e) {
-			System.out.println("\nO cliente nao pôde conectar ao webserver " + url + " com usuário " + usuario
-					+ " e senha " + senha + ".");
-		}
-		manager.waitForEvents(0);
-		return manager;
-	}
-
-	public static void desconectarWS(VirtualBoxManager manager) {
-		// manager.cleanup();
-		try {
-			manager.disconnect();
-		} catch (VBoxException e) {
-			System.out.println("\nNão foi possível se desconectar do webservice.");
-		}
-	}
-
 	public static List<String> lerIPs() {
 		BufferedReader in;
 		String str;
 		List<String> list = new ArrayList<String>();
 		try {
-			in = new BufferedReader(
-					new FileReader("C:\\Users\\Administrator\\eclipse-workspace\\TC-RemoteVM\\src\\Hosts.txt"));
+			in = new BufferedReader(new FileReader(
+					"C:\\Users\\Administrator\\git\\repository\\TC-RemoteVM\\TC-RemoteVM\\src\\Hosts.txt"));
 			while ((str = in.readLine()) != null) {
 				list.add(str);
 			}
@@ -592,41 +574,54 @@ public class Programa {
 		}
 
 	}
-	// o worst fit, que deixa muita memória sobrando, seria, no nosso caso, o best fit,
+	// o worst fit, que deixa muita memória sobrando, seria, no nosso caso, o best
+	// fit,
 	// pois deixa mais memória pro usuário
-	
-	// o best fit, que deixa pouca memória sobrando, seria, no nosso caso, o worst fit
+
+	// o best fit, que deixa pouca memória sobrando, seria, no nosso caso, o worst
+	// fit
 	// pois deixa pouca memória pro usuário
-	
+
 	// o first fit, no nosso caso, apenas pegaria o primeiro com memória disponível,
 	// sem considerar a atual utilização da máquina host
-	
+	public static void exibirTelaConvidado(String ipHost, String porta) {
+
+		String parametros = "/v:" + ipHost + ":" + porta;
+		Runtime runtime = Runtime.getRuntime();
+
+		String[] aplicacao = new String[] { "c:\\Windows\\System32\\mstsc.exe", parametros };
+
+		try {
+			runtime.exec(aplicacao);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	public static void main(String[] args) throws java.io.IOException {
 		// objetivo = alta disponibilidade de servidores web ngix com várias VMS
-		
-		String ipServidorArquivos = "10.1.1.4";
-		String pastaCompartilhada = "Teste";
-		listarAppliances(ipServidorArquivos, pastaCompartilhada);
+		// Exibir console - conectar, ver as vms, ver se está ativona VM, e obter a
+		// porta
+		// Se não estiver ativo, ativar. Se a porta já existir, substituir.
 
+		// listarAppliances(ipServidorArquivos, pastaCompartilhada);
 		
-		// IP - online - capacidade - (margem)
+		VirtualBoxManager gerente = conectarWS("10.1.1.4");
 		
-		// USO FINAL = (Memória utilizado + Memória Appliance)/Memória Total
-		
-
-		// {String IP, mem_utilizada, mem_total} - uso_mem_final, mem_appliance 
-		
+//		IVirtualBox vBoxSVC;
+//		if (gerente!=null) {
+//			vBoxSVC=gerente.getVBox();
+//			listarVM(vBoxSVC);
+//		}
+		exibirTelaConvidado("10.1.1.4","4489");
+	
 		List<String> ipsHosts = lerIPs();
 		System.out.println("\nIPs dos hosts cadastrados:" + ipsHosts);
 		HashMap<String, List<String>> hosts = new HashMap<>();
 
-		
-		for (String s: ipsHosts) {
-			System.out.println(s);
-			
+		for (String s : ipsHosts) {
 			VirtualBoxManager manager = conectarWS(s);
-			
+
 			// hashmap
 			try {
 				// IVirtualBox = VBoxSVC.exe = Processo que controla tudo independente da
@@ -634,20 +629,22 @@ public class Programa {
 				IVirtualBox vBoxSVC = manager.getVBox();
 
 				if (vBoxSVC != null) {
-					
+
 					String memoriatotalhostemMB = getMemoriaTotalHostEmMB(vBoxSVC);
 					String memoriadisponivelhostemMB = getMemoriaDisponivelHostEmMB(vBoxSVC);
-					String[] memoria = {memoriatotalhostemMB, memoriadisponivelhostemMB};
+					String[] memoria = { memoriatotalhostemMB, memoriadisponivelhostemMB };
 					hosts.put(s, Arrays.asList(memoria));
 					// System.out.println("VirtualBox version: " + vBoxSVC.getVersion() + "\n");
 					// detalharAppliance(vBoxSVC, ipServidorArquivos, pastaCompartilhada,
 					// "Ubuntu18.04.1_1.0.ova");
 					detalharHost(vBoxSVC);
 					listarVM(vBoxSVC);
-					// System.out.println("getDiscoAppliance: " + getTamanhoDiscoVirtualAppliance(vBoxSVC, "F:\\Apple.ova"));
+					// System.out.println("getDiscoAppliance: " +
+					// getTamanhoDiscoVirtualAppliance(vBoxSVC, "F:\\Apple.ova"));
 					// verificarDisponibilidadeHost(vBoxSVC, manager, "F:\\Apple.ova");
 					// desligarVM(manager, vBoxSVC, "Ubuntu18.04.1 1");
-					// implantarAppliance(manager, vBoxSVC, "\\\\10.1.1.4\\Teste\\Ubuntu18.04.1_1.0.ova");
+					// implantarAppliance(manager, vBoxSVC,
+					// "\\\\10.1.1.4\\Teste\\Ubuntu18.04.1_1.0.ova");
 					// ligarVM(manager, vBoxSVC,"Ubuntu18.04.1 1");
 					// removerVM(manager, vBoxSVC, "Ubuntu18.04.1 1");
 					// testEnumeration(manager, vBoxSVC);
@@ -656,9 +653,8 @@ public class Programa {
 				System.out.println("Erro: " + e);
 			}
 			System.out.println("hosts :" + hosts);
-			
+
 		}
 
-		
 	}
 }
