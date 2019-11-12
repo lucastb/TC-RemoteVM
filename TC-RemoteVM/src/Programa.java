@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Scanner;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -598,13 +599,95 @@ public class Programa {
 		}
 	}
 	
-	public static void main(String[] args) throws java.io.IOException {
+	public static void limparConsole() {
+		try {
+			new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+		} catch (Exception e) {
+			System.out.println(e);
+		}
+	} 
+	
+	public static void exibirCabecalho() {
+			limparConsole();
+			System.out.println("########################################################");
+			System.out.println("\t\t\t RemoteVM ");
+			System.out.println("########################################################");		   
+	   }
+
+	public static void pausa() {
+
+		System.out.println("\nPressione Enter para continuar...");
+		try {
+			System.in.read();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void exibirMenuPrincipal() {
+		Scanner entrada = new Scanner(System.in);
+		boolean lacoPrincipal = true;
+
+		int opcao;
+		while (true) {
+			limparConsole();
+			exibirCabecalho();
+			System.out.println("\nSelecione uma opção:");
+			System.out.println("1) Adicionar máquina(s) hóspede(s) a partir de arquivo com endereços IPs");// importar
+																											// arquivo
+																											// txt
+			System.out.println("2) Adicionar máquina hóspede a partir de endereço IP");// adicionar endereço ip de
+																						// máquina
+			System.out.println("3) Editar pool de máquinas");
+			System.out.println("4) Descrever pool de máquina(s)");
+			System.out.println("5) Adicionar endereço do servidor de arquivos");
+			System.out.println("6) Listar appliances hospedados no servidor de arquivos");
+			System.out.println("7) Implantar / Excluir VM");
+			System.out.println("8) Ligar/Desligar VM");
+			System.out.println("9) Exibir tela remota da VM");
+			System.out.println("10) Sair do programa");
+			System.out.println("");
+			System.out.print("Entre o número para selecionar uma opção:\r\n");
+			
+			opcao = entrada.nextInt();
+			
+			switch (opcao) {
+			case 1:
+				System.out.println("\nDigite o caminho completo do arquivo:");
+				pausa();
+				break;
+
+			default:
+				break;
+			}
+		}
+
+	}
+
+	public static void exibirParametros() {
+//		if (args.length != 1 || args[0] == "-?") {
+		System.out.println("Uso: java RemoteVM <argumentos>"
+				+ "\n -h <arquivo>.txt \t\t - Arquivo texto com a lista de hosts executando o webservice."
+				+ "\n -i <nome appliance>\t\t - Importar Appliance"
+				+ "\n -l <nome vm) \t\t\t - Ligar VM"
+				+ "\n -d <nome vm> \t\t\t - Desligar VM"
+				+ "\n -e <nome vm> \t\t\t - Excluir VM"
+				+ "\n -s <nome vm> \t\t\t - Exibir tela da VM");
+		System.exit(1);
+	}
+	   public static void main(String[] args) throws java.io.IOException, InterruptedException {
+	   
+		   exibirMenuPrincipal();
+		
 		// objetivo = alta disponibilidade de servidores web ngix com várias VMS
 		// Exibir console - conectar, ver as vms, ver se está ativona VM, e obter a
 		// porta
-		// Se não estiver ativo, ativar. Se a porta já existir, substituir.
+		// Copiar pros hosts sem precisar ir um por um.
 
+		// Se não estiver ativo, ativar. Se a porta já existir, substituir.
+		// 
 		// listarAppliances(ipServidorArquivos, pastaCompartilhada);
+		
 		
 		VirtualBoxManager gerente = conectarWS("10.1.1.4");
 		
