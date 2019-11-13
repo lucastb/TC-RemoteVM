@@ -10,41 +10,40 @@
 //	
 //	https://docs.oracle.com/cd/E17802_01/webservices/webservices/docs/2.0/tutorial/doc/JAXWS3.html
 
-import org.apache.log4j.BasicConfigurator;
-import org.virtualbox_6_0.*;
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
-import com.hierynomus.msfscc.fileinformation.FileIdBothDirectoryInformation;
-import com.hierynomus.security.bc.BCSecurityProvider;
-import com.hierynomus.security.jce.JceSecurityProvider;
-import com.hierynomus.smbj.SMBClient;
-import com.hierynomus.smbj.SmbConfig;
+import org.virtualbox_6_0.CleanupMode;
+import org.virtualbox_6_0.IAppliance;
+import org.virtualbox_6_0.IConsole;
+import org.virtualbox_6_0.IHost;
+import org.virtualbox_6_0.IMachine;
+import org.virtualbox_6_0.IProgress;
+import org.virtualbox_6_0.ISession;
+import org.virtualbox_6_0.IVirtualBox;
+import org.virtualbox_6_0.IVirtualSystemDescription;
+import org.virtualbox_6_0.LockType;
+import org.virtualbox_6_0.VBoxException;
+import org.virtualbox_6_0.VirtualBoxManager;
+import org.virtualbox_6_0.VirtualSystemDescriptionType;
+import org.virtualbox_6_0.VirtualSystemDescriptionValueType;
+
 import com.hierynomus.smbj.auth.AuthenticationContext;
-import com.hierynomus.smbj.connection.Connection;
-import com.hierynomus.smbj.session.Session;
-import com.hierynomus.smbj.share.DiskShare;
 
 import ch.swaechter.smbjwrapper.SharedConnection;
 import ch.swaechter.smbjwrapper.SharedDirectory;
 import ch.swaechter.smbjwrapper.SharedFile;
 import jcifs.netbios.NbtAddress;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Scanner;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
-import javax.swing.JOptionPane;
 
 public class Programa {
 
@@ -58,7 +57,9 @@ public class Programa {
 	// O objeto sessão tem um objeto console.
 
 	public static String ipServidorArquivos;
-	public static String pastaCompartilhada;
+	public static String pastaCompartilhada = null;
+	public static String parametros;
+	public static List<String> ips = new ArrayList<String>();
 
 	public static SharedConnection conectarServidorArquivos(String ipServidorArquivos, String pastaCompartilhada) {
 		// this.ipServidorArquivos = ipServidorArquivos;
@@ -79,6 +80,9 @@ public class Programa {
 	}
 
 	public static void listarAppliances(String ipServidorArquivos, String pastaCompartilhada) {
+
+		// pastaCompartilhada.trim
+		
 		SharedConnection conexaoCompartilhada = conectarServidorArquivos(ipServidorArquivos, pastaCompartilhada);
 		if (conexaoCompartilhada != null) {
 			SharedDirectory diretorioRaiz = new SharedDirectory(conexaoCompartilhada);
@@ -146,7 +150,7 @@ public class Programa {
 	// IP - online - capacidade - (margem)
 	// USO FINAL = (Memória utilizado + Memória Appliance)/Memória Total
 	// {String IP, mem_utilizada, mem_total} - uso_mem_final, mem_appliance
-	
+
 	public static boolean verificarDisponibilidadeHost(IVirtualBox vBoxSVC, String ipServidorArquivos,
 			String pastaCompartilhada, String caminho) {
 
@@ -558,23 +562,6 @@ public class Programa {
 		}
 	}
 
-	public static List<String> lerIPs() {
-		BufferedReader in;
-		String str;
-		List<String> list = new ArrayList<String>();
-		try {
-			in = new BufferedReader(new FileReader(
-					"C:\\Users\\Administrator\\git\\repository\\TC-RemoteVM\\TC-RemoteVM\\src\\Hosts.txt"));
-			while ((str = in.readLine()) != null) {
-				list.add(str);
-			}
-			return list;
-		} catch (IOException e) {
-			System.out.println("\nArquivo não encontrado.");
-			return list;
-		}
-
-	}
 	// o worst fit, que deixa muita memória sobrando, seria, no nosso caso, o best
 	// fit,
 	// pois deixa mais memória pro usuário
@@ -582,6 +569,10 @@ public class Programa {
 	// o best fit, que deixa pouca memória sobrando, seria, no nosso caso, o worst
 	// fit
 	// pois deixa pouca memória pro usuário
+
+	public String getParametros() {
+		return parametros;
+	}
 
 	// o first fit, no nosso caso, apenas pegaria o primeiro com memória disponível,
 	// sem considerar a atual utilização da máquina host
@@ -598,21 +589,21 @@ public class Programa {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static void limparConsole() {
 		try {
 			new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
 		} catch (Exception e) {
 			System.out.println(e);
 		}
-	} 
-	
+	}
+
 	public static void exibirCabecalho() {
-			limparConsole();
-			System.out.println("########################################################");
-			System.out.println("\t\t\t RemoteVM ");
-			System.out.println("########################################################");		   
-	   }
+		limparConsole();
+		System.out.println("########################################################");
+		System.out.println("\t\t\t RemoteVM ");
+		System.out.println("########################################################");
+	}
 
 	public static void pausa() {
 
@@ -624,9 +615,30 @@ public class Programa {
 		}
 	}
 
+	public static void importarParametros() {
+		System.out.println("\nDigite o caminho completo do arquivo:");
+		Scanner lerTerminal = new Scanner(System.in);
+		String caminhoArquivo = lerTerminal.nextLine();
+		List<String> lista = Collections.emptyList();
+		try {
+			lista = Files.readAllLines(Paths.get(caminhoArquivo), StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		int linhas = 0;
+		for (String s : lista) {
+			if (linhas == 0) {
+				pastaCompartilhada = s;
+			} else {
+				ips.add(s);
+			}
+			linhas++;
+		}
+	}
+
 	public static void exibirMenuPrincipal() {
 		Scanner entrada = new Scanner(System.in);
-		boolean lacoPrincipal = true;
 
 		int opcao;
 		while (true) {
@@ -634,13 +646,11 @@ public class Programa {
 			exibirCabecalho();
 			System.out.println("\nSelecione uma opção:");
 			System.out.println("1) Adicionar máquina(s) hóspede(s) a partir de arquivo com endereços IPs");// importar
-																											// arquivo
-																											// txt
+			System.out.println("2) Listar IPs cadastrados");
 			System.out.println("2) Adicionar máquina hóspede a partir de endereço IP");// adicionar endereço ip de
-																						// máquina
 			System.out.println("3) Editar pool de máquinas");
 			System.out.println("4) Descrever pool de máquina(s)");
-			System.out.println("5) Adicionar endereço do servidor de arquivos");
+			System.out.println("5) Exibir endereço do servidor de arquivos");
 			System.out.println("6) Listar appliances hospedados no servidor de arquivos");
 			System.out.println("7) Implantar / Excluir VM");
 			System.out.println("8) Ligar/Desligar VM");
@@ -648,15 +658,31 @@ public class Programa {
 			System.out.println("10) Sair do programa");
 			System.out.println("");
 			System.out.print("Entre o número para selecionar uma opção:\r\n");
-			
+
 			opcao = entrada.nextInt();
-			
+
 			switch (opcao) {
 			case 1:
-				System.out.println("\nDigite o caminho completo do arquivo:");
+				importarParametros();
+				System.out.println("Pasta Compartilhada: " + pastaCompartilhada);
+				System.out.println("IPs: ");
+				for (String ipip : ips) {
+					System.out.println(ipip);
+				}
+
 				pausa();
 				break;
 
+			case 2:
+				System.out.println("IPs cadastrados: ");
+				for (String s : ips) {
+					System.out.println(s);
+				}
+				pausa();
+				break;
+			case 5:
+				System.out.println("Pasta Compartilhada: " + pastaCompartilhada);
+				pausa();
 			default:
 				break;
 			}
@@ -668,37 +694,35 @@ public class Programa {
 //		if (args.length != 1 || args[0] == "-?") {
 		System.out.println("Uso: java RemoteVM <argumentos>"
 				+ "\n -h <arquivo>.txt \t\t - Arquivo texto com a lista de hosts executando o webservice."
-				+ "\n -i <nome appliance>\t\t - Importar Appliance"
-				+ "\n -l <nome vm) \t\t\t - Ligar VM"
-				+ "\n -d <nome vm> \t\t\t - Desligar VM"
-				+ "\n -e <nome vm> \t\t\t - Excluir VM"
+				+ "\n -i <nome appliance>\t\t - Importar Appliance" + "\n -l <nome vm) \t\t\t - Ligar VM"
+				+ "\n -d <nome vm> \t\t\t - Desligar VM" + "\n -e <nome vm> \t\t\t - Excluir VM"
 				+ "\n -s <nome vm> \t\t\t - Exibir tela da VM");
 		System.exit(1);
 	}
-	   public static void main(String[] args) throws java.io.IOException, InterruptedException {
-	   
-		   exibirMenuPrincipal();
-		
+
+	public static void main(String[] args) throws java.io.IOException, InterruptedException {
+
+		exibirMenuPrincipal();
+
 		// objetivo = alta disponibilidade de servidores web ngix com várias VMS
 		// Exibir console - conectar, ver as vms, ver se está ativona VM, e obter a
 		// porta
 		// Copiar pros hosts sem precisar ir um por um.
 
 		// Se não estiver ativo, ativar. Se a porta já existir, substituir.
-		// 
+		//
 		// listarAppliances(ipServidorArquivos, pastaCompartilhada);
-		
-		
+
 		VirtualBoxManager gerente = conectarWS("10.1.1.4");
-		
+
 //		IVirtualBox vBoxSVC;
 //		if (gerente!=null) {
 //			vBoxSVC=gerente.getVBox();
 //			listarVM(vBoxSVC);
 //		}
-		exibirTelaConvidado("10.1.1.4","4489");
-	
-		List<String> ipsHosts = lerIPs();
+		exibirTelaConvidado("10.1.1.4", "4489");
+
+		List<String> ipsHosts = ips;
 		System.out.println("\nIPs dos hosts cadastrados:" + ipsHosts);
 		HashMap<String, List<String>> hosts = new HashMap<>();
 
