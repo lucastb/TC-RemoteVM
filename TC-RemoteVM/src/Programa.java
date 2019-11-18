@@ -1,15 +1,15 @@
 //	feature						effort		user-loveit		revenue
 //  priorizar por recurso		2			 	
-//	parâmetros					1			
+//	parï¿½metros					1			
 //	parametro exibir console	
 //	parametro serv arquivos		
 //	parametro lista ips			
 //	
 
-//	Objetivo => Implementar três vms com apache e conectar nelas
+//	Objetivo => Implementar trï¿½s vms com apache e conectar nelas
 //	
 //	https://docs.oracle.com/cd/E17802_01/webservices/webservices/docs/2.0/tutorial/doc/JAXWS3.html
-
+// a
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -50,11 +50,11 @@ public class Programa {
 //	IMachine ISession
 //	Unlocked =
 
-//	The caller’s session object can then be used as a sort of remote control to the VM process that
-//	was launched. It contains a “console” object (see ISession::console) with which the VM can be
+//	The callerï¿½s session object can then be used as a sort of remote control to the VM process that
+//	was launched. It contains a ï¿½consoleï¿½ object (see ISession::console) with which the VM can be
 //	paused, stopped, snapshotted or other things.
 
-	// O objeto sessão tem um objeto console.
+	// O objeto sessï¿½o tem um objeto console.
 
 	public static String ipServidorArquivos;
 	public static String pastaCompartilhada = null;
@@ -65,16 +65,16 @@ public class Programa {
 		// this.ipServidorArquivos = ipServidorArquivos;
 		// this.pastaCompartilhada = pastaCompartilhada;
 
-		// Conecta num servidor de arquivos que permite acesso público.
+		// Conecta num servidor de arquivos que permite acesso pï¿½blico.
 		AuthenticationContext authenticationContext = AuthenticationContext.anonymous();
-		System.out.println("Conectando à pasta compartilhada \\\\" + ipServidorArquivos + "\\" + pastaCompartilhada);
+		System.out.println("Conectando ï¿½ pasta compartilhada \\\\" + ipServidorArquivos + "\\" + pastaCompartilhada);
 		try {
 			SharedConnection sharedConnection = new SharedConnection(ipServidorArquivos, pastaCompartilhada,
 					authenticationContext);
-			System.out.println("Conectado à pasta compartilhada \\\\" + ipServidorArquivos + "\\" + pastaCompartilhada);
+			System.out.println("Conectado ï¿½ pasta compartilhada \\\\" + ipServidorArquivos + "\\" + pastaCompartilhada);
 			return sharedConnection;
 		} catch (IOException e) {
-			System.out.println("\nNão foi possível se conectar à pasta compartilhada.");
+			System.out.println("\nNï¿½o foi possï¿½vel se conectar ï¿½ pasta compartilhada.");
 			return null;
 		}
 	}
@@ -90,13 +90,13 @@ public class Programa {
 				System.out.println("\nLista de Appliance(s) :\n" + arquivoCompartilhado.getName());
 			}
 		} else {
-			System.out.println("Não foi possível listar os arquivos.");
+			System.out.println("Nï¿½o foi possï¿½vel listar os arquivos.");
 		}
 	}
 
 	public static VirtualBoxManager conectarWS(String ipHost) {
 
-		// Cada instância de VirtualBoxManager é um host com o VirtualBox
+		// Cada instï¿½ncia de VirtualBoxManager ï¿½ um host com o VirtualBox
 		VirtualBoxManager manager = VirtualBoxManager.createInstance(null);
 
 		String porta = "18083";
@@ -106,14 +106,14 @@ public class Programa {
 		String senha = null;
 		// IWebsessionManager wsm = new IWebsessionManager()
 
-		System.out.println("\nConectando em " + url + " com usuário " + usuario + " e senha " + senha + "...");
+		System.out.println("\nConectando em " + url + " com usuï¿½rio " + usuario + " e senha " + senha + "...");
 		try {
 			manager.connect(url, usuario, senha);
-			System.out.println("\nCliente conectado com sucesso em " + url + " com usuário " + usuario + " e senha "
+			System.out.println("\nCliente conectado com sucesso em " + url + " com usuï¿½rio " + usuario + " e senha "
 					+ senha + ".");
 
 		} catch (VBoxException e) {
-			System.out.println("\nO cliente nao pôde conectar ao webserver " + url + " com usuário " + usuario
+			System.out.println("\nO cliente nao pï¿½de conectar ao webserver " + url + " com usuï¿½rio " + usuario
 					+ " e senha " + senha + ".");
 		}
 		manager.waitForEvents(0);
@@ -121,17 +121,17 @@ public class Programa {
 	}
 
 	/*
-	 * 14.10.2019 - API do WebService do VirtualBox não tem um método que exibe o
-	 * espaço livre em disco. public static long getEspacoLivreDiscoHost(IVirtualBox
-	 * vBoxSVC) { // 08.10.2019 - esta pegando o espaço em disco do host local, ao
-	 * invés do remoto ISystemProperties isp = vBoxSVC.getSystemProperties();
+	 * 14.10.2019 - API do WebService do VirtualBox nï¿½o tem um mï¿½todo que exibe o
+	 * espaï¿½o livre em disco. public static long getEspacoLivreDiscoHost(IVirtualBox
+	 * vBoxSVC) { // 08.10.2019 - esta pegando o espaï¿½o em disco do host local, ao
+	 * invï¿½s do remoto ISystemProperties isp = vBoxSVC.getSystemProperties();
 	 * System.out.println("getDefaultMachineFolder " +
 	 * isp.getDefaultMachineFolder()); String unidade =
 	 * isp.getDefaultMachineFolder().substring(0, 1);
 	 * 
 	 * File file = new File(unidade + ":\\");
 	 * 
-	 * // System.out.println("Espaço Livre: " + file.getFreeSpace()); // // double
+	 * // System.out.println("Espaï¿½o Livre: " + file.getFreeSpace()); // // double
 	 * size = file.getFreeSpace() / (1024.0 * 1024 * 1024); // //
 	 * System.out.printf("%.3f GB\n", size);
 	 * 
@@ -143,12 +143,12 @@ public class Programa {
 		try {
 			manager.disconnect();
 		} catch (VBoxException e) {
-			System.out.println("\nNão foi possível se desconectar do webservice.");
+			System.out.println("\nNï¿½o foi possï¿½vel se desconectar do webservice.");
 		}
 	}
 
 	// IP - online - capacidade - (margem)
-	// USO FINAL = (Memória utilizado + Memória Appliance)/Memória Total
+	// USO FINAL = (Memï¿½ria utilizado + Memï¿½ria Appliance)/Memï¿½ria Total
 	// {String IP, mem_utilizada, mem_total} - uso_mem_final, mem_appliance
 
 	public static boolean verificarDisponibilidadeHost(IVirtualBox vBoxSVC, String ipServidorArquivos,
@@ -161,8 +161,8 @@ public class Programa {
 
 		/*
 		 * 
-		 * 14.10.2019 - API do WebService do VirtualBox não tem um método que exibe o
-		 * espaço livre em disco.
+		 * 14.10.2019 - API do WebService do VirtualBox nï¿½o tem um mï¿½todo que exibe o
+		 * espaï¿½o livre em disco.
 		 * 
 		 * long c, d = 0; c = getEspacoLivreDiscoHost(vBoxSVC); d =
 		 * Long.parseLong(getTamanhoDiscoVirtualAppliance(vBoxSVC, caminho));
@@ -233,7 +233,7 @@ public class Programa {
 				manager.waitForEvents(0);
 
 			} else {
-				System.out.println("VM " + name + " já esta no estado " + m.getState().name() + ".");
+				System.out.println("VM " + name + " jï¿½ esta no estado " + m.getState().name() + ".");
 			}
 
 		} catch (VBoxException e) {
@@ -321,15 +321,15 @@ public class Programa {
 
 		System.out.println(
 
-				"\nMemória total: " + h.getMemorySize() + " MB" + "\nMemória utilizada: "
-						+ (h.getMemorySize() - h.getMemoryAvailable()) + " MB" + "\nMemória disponível: "
-						+ h.getMemoryAvailable() + " MB" + "\nUso de Memória: " + Math.round(c) + " %"
-						+ "\nSistema Operacional: " + h.getOperatingSystem() + "\nVersão: " + h.getOSVersion() +
-//				"\nNúcleos de Processamento: " + h.getProcessorCoreCount() +
-//				"\nProcessadores Lógicos: " + h.getProcessorCount() +
-//				"\nNúcleos de Processamento Online:" + h.getProcessorOnlineCoreCount() +
-//				"\nProcessadores Lógicos Online: " + h.getProcessorOnlineCount()
-						"\nNúcleos de Processamento: " + h.getProcessorOnlineCoreCount() + "\nProcessadores Lógicos: "
+				"\nMemï¿½ria total: " + h.getMemorySize() + " MB" + "\nMemï¿½ria utilizada: "
+						+ (h.getMemorySize() - h.getMemoryAvailable()) + " MB" + "\nMemï¿½ria disponï¿½vel: "
+						+ h.getMemoryAvailable() + " MB" + "\nUso de Memï¿½ria: " + Math.round(c) + " %"
+						+ "\nSistema Operacional: " + h.getOperatingSystem() + "\nVersï¿½o: " + h.getOSVersion() +
+//				"\nNï¿½cleos de Processamento: " + h.getProcessorCoreCount() +
+//				"\nProcessadores Lï¿½gicos: " + h.getProcessorCount() +
+//				"\nNï¿½cleos de Processamento Online:" + h.getProcessorOnlineCoreCount() +
+//				"\nProcessadores Lï¿½gicos Online: " + h.getProcessorOnlineCount()
+						"\nNï¿½cleos de Processamento: " + h.getProcessorOnlineCoreCount() + "\nProcessadores Lï¿½gicos: "
 						+ h.getProcessorOnlineCount());
 	}
 
@@ -381,13 +381,13 @@ public class Programa {
 								VirtualSystemDescriptionValueType.Original)
 						+ "\nS.O.: "
 						+ ivsd.getValuesByType(VirtualSystemDescriptionType.OS, VirtualSystemDescriptionValueType.Auto)
-						+ "\nMemória (MB) : "
+						+ "\nMemï¿½ria (MB) : "
 						+ ivsd.getValuesByType(
 								VirtualSystemDescriptionType.Memory, VirtualSystemDescriptionValueType.Auto)
-						+ "\nMemória (B)  : "
+						+ "\nMemï¿½ria (B)  : "
 						+ ivsd.getValuesByType(VirtualSystemDescriptionType.Memory,
 								VirtualSystemDescriptionValueType.Original)
-						+ "\nNúcleos de CPU: "
+						+ "\nNï¿½cleos de CPU: "
 						+ ivsd.getValuesByType(VirtualSystemDescriptionType.CPU, VirtualSystemDescriptionValueType.Auto)
 						+ "\nImagem de Disco: " + ivsd.getValuesByType(VirtualSystemDescriptionType.HardDiskImage,
 								VirtualSystemDescriptionValueType.Auto));
@@ -407,7 +407,7 @@ public class Programa {
 				for (String a : arrOfStr) {
 					i++;
 					if (i == 2) {
-						System.out.println("Capacidade Máxima do disco (Bytes): " + a);
+						System.out.println("Capacidade Mï¿½xima do disco (Bytes): " + a);
 					}
 				}
 			}
@@ -507,7 +507,7 @@ public class Programa {
 
 	public static void implantarAppliance(VirtualBoxManager manager, IVirtualBox vbox, String caminho) {
 
-//		se nao der pra transferir, muda a arquitetura pra assumir que os arquivos já estão em todas as máquinas
+//		se nao der pra transferir, muda a arquitetura pra assumir que os arquivos jï¿½ estï¿½o em todas as mï¿½quinas
 
 //		https://crunchify.com/why-and-for-what-should-i-use-enum-java-enum-examples/
 
@@ -557,25 +557,25 @@ public class Programa {
 			NbtAddress address = NbtAddress.getByName(hostname);
 			return address.getHostAddress();
 		} catch (UnknownHostException e) {
-			System.out.println("Não pode resolver o endereço IP do host " + hostname);
+			System.out.println("Nï¿½o pode resolver o endereï¿½o IP do host " + hostname);
 			return null;
 		}
 	}
 
-	// o worst fit, que deixa muita memória sobrando, seria, no nosso caso, o best
+	// o worst fit, que deixa muita memï¿½ria sobrando, seria, no nosso caso, o best
 	// fit,
-	// pois deixa mais memória pro usuário
+	// pois deixa mais memï¿½ria pro usuï¿½rio
 
-	// o best fit, que deixa pouca memória sobrando, seria, no nosso caso, o worst
+	// o best fit, que deixa pouca memï¿½ria sobrando, seria, no nosso caso, o worst
 	// fit
-	// pois deixa pouca memória pro usuário
+	// pois deixa pouca memï¿½ria pro usuï¿½rio
 
 	public String getParametros() {
 		return parametros;
 	}
 
-	// o first fit, no nosso caso, apenas pegaria o primeiro com memória disponível,
-	// sem considerar a atual utilização da máquina host
+	// o first fit, no nosso caso, apenas pegaria o primeiro com memï¿½ria disponï¿½vel,
+	// sem considerar a atual utilizaï¿½ï¿½o da mï¿½quina host
 	public static void exibirTelaConvidado(String ipHost, String porta) {
 
 		String parametros = "/v:" + ipHost + ":" + porta;
@@ -644,20 +644,20 @@ public class Programa {
 		while (true) {
 			limparConsole();
 			exibirCabecalho();
-			System.out.println("\nSelecione uma opção:");
-			System.out.println("1) Adicionar máquina(s) hóspede(s) a partir de arquivo com endereços IPs");// importar
+			System.out.println("\nSelecione uma opï¿½ï¿½o:");
+			System.out.println("1) Adicionar mï¿½quina(s) hï¿½spede(s) a partir de arquivo com endereï¿½os IPs");// importar
 			System.out.println("2) Listar IPs cadastrados");
-			System.out.println("2) Adicionar máquina hóspede a partir de endereço IP");// adicionar endereço ip de
-			System.out.println("3) Editar pool de máquinas");
-			System.out.println("4) Descrever pool de máquina(s)");
-			System.out.println("5) Exibir endereço do servidor de arquivos");
+			System.out.println("2) Adicionar mï¿½quina hï¿½spede a partir de endereï¿½o IP");// adicionar endereï¿½o ip de
+			System.out.println("3) Editar pool de mï¿½quinas");
+			System.out.println("4) Descrever pool de mï¿½quina(s)");
+			System.out.println("5) Exibir endereï¿½o do servidor de arquivos");
 			System.out.println("6) Listar appliances hospedados no servidor de arquivos");
 			System.out.println("7) Implantar / Excluir VM");
 			System.out.println("8) Ligar/Desligar VM");
 			System.out.println("9) Exibir tela remota da VM");
 			System.out.println("10) Sair do programa");
 			System.out.println("");
-			System.out.print("Entre o número para selecionar uma opção:\r\n");
+			System.out.print("Entre o nï¿½mero para selecionar uma opï¿½ï¿½o:\r\n");
 
 			opcao = entrada.nextInt();
 
@@ -704,12 +704,12 @@ public class Programa {
 
 		exibirMenuPrincipal();
 
-		// objetivo = alta disponibilidade de servidores web ngix com várias VMS
-		// Exibir console - conectar, ver as vms, ver se está ativona VM, e obter a
+		// objetivo = alta disponibilidade de servidores web ngix com vï¿½rias VMS
+		// Exibir console - conectar, ver as vms, ver se estï¿½ ativona VM, e obter a
 		// porta
 		// Copiar pros hosts sem precisar ir um por um.
 
-		// Se não estiver ativo, ativar. Se a porta já existir, substituir.
+		// Se nï¿½o estiver ativo, ativar. Se a porta jï¿½ existir, substituir.
 		//
 		// listarAppliances(ipServidorArquivos, pastaCompartilhada);
 
