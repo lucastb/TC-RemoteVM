@@ -44,7 +44,7 @@ import ch.swaechter.smbjwrapper.SharedConnection;
 import ch.swaechter.smbjwrapper.SharedDirectory;
 import ch.swaechter.smbjwrapper.SharedFile;
 import jcifs.netbios.NbtAddress;
-
+// Teste t
 public class Programa {
 
 //	IMachine ISession
