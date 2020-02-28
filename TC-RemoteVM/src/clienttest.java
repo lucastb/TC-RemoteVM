@@ -14,7 +14,7 @@ public class clienttest
 
     public clienttest()
     {
-        mgr = new IWebsessionManager("http://localhost:18083/");
+        mgr = new WebsessionManager("http://localhost:18083/");
         vbox = mgr.logon("test", "test");
         System.out.println("Initialized connection to VirtualBox version " + vbox.getVersion());
     }
