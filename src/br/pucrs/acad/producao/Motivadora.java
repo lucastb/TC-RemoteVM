@@ -1,3 +1,4 @@
+package br.pucrs.acad.producao;
 import javax.swing.JOptionPane;
 
 public class Motivadora {

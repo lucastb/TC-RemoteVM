@@ -1,3 +1,4 @@
+package br.pucrs.acad.producao;
 import java.util.List;
 
 public class Appliance {

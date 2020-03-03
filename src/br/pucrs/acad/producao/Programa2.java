@@ -1,3 +1,4 @@
+package br.pucrs.acad.producao;
 
 public class Programa2 {
 

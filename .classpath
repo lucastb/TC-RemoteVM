@@ -16,6 +16,8 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/Lucas/OneDrive/Universidade/PUCRS/2019.1/Tcc/VirtualBoxSDK-6.0.10-132072/sdk/bindings/webservice/java/jax-ws/vboxjws.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Administrator/git/TC-RemoteVM/bin/vboxjws-src.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Administrator/git/TC-RemoteVM/bin/vboxjws-doc.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Administrator/git/TC-RemoteVM/bin/vboxjws.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

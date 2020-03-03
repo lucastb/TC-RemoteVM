@@ -1,3 +1,5 @@
+package br.pucrs.acad.producao;
+
 //	feature						effort		user-loveit		revenu
 //  priorizar por recurso		2			 	
 //	parâmetros					1			
@@ -10,6 +12,7 @@
 //	
 //	https://docs.oracle.com/cd/E17802_01/webservices/webservices/docs/2.0/tutorial/doc/JAXWS3.html
 // a
+
 import java.io.IOException;
 import java.util.regex.*;
 import java.net.UnknownHostException;

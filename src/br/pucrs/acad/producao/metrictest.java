@@ -1,3 +1,4 @@
+package br.pucrs.acad.producao;
 /* $Id$ */
 /*!file
  * Sample of performance API usage, written in Java.
