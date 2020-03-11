@@ -35,7 +35,7 @@ package br.pucrs.acad.virtualboxsvn;
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import com.sun.xml.ws.commons.virtualbox_6_0.*;
+//import com.sun.xml.ws.commons.virtualbox_6_0.*;
 import org.virtualbox_6_0.*;
 
 import java.util.*;
