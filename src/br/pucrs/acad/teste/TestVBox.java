@@ -222,7 +222,6 @@ public class TestVBox {
 //				testReadLog(mgr, vbox);
 				testStart(mgr, vbox);
 //				testEvents(mgr, vbox.getEventSource());
-
 				System.out.println("done, press Enter...");
 				int ch = System.in.read();
 			}

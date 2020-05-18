@@ -323,18 +323,13 @@ public class Programa {
 		// https://crunchify.com/why-and-for-what-should-i-use-enum-java-enum-examples/
 
 		try {
-
 			IAppliance appliance = vbox.createAppliance();
-
 			appliance.read(caminho);
-
 			appliance.interpret();
-
 			List<String> avisos = appliance.getWarnings();
 			for (String s : avisos) {
 				System.out.println("Aviso: " + s);
 			}
-
 			IProgress p = appliance.importMachines(null);
 
 			while (!p.getCompleted()) {
@@ -342,7 +337,6 @@ public class Programa {
 					TimeUnit.SECONDS.sleep(5); //
 					// System.out.println("getOperationPercent: " + p.getOperationPercent());
 					System.out.println("Percentual pronto: " + p.getPercent());
-
 				} catch (InterruptedException e) {
 					System.out.println("Erro: " + e);
 					return false;
@@ -355,7 +349,7 @@ public class Programa {
 		}
 		return false;
 
-		// progressBar(manager, p, 10000);
+//		 progressBar(manager, p, 10000);
 
 	}
 
@@ -477,10 +471,10 @@ public class Programa {
 			IMachine m = vBoxSVC.findMachine(machine);
 
 			String name = m.getName();
-
+			// 12.03.2020 - No futuro, alterar para verificar por outros estados da maquina virtual, antes de desligá-la.
 			if (m.getState().name() != "PoweredOff") {
 
-				System.out.println("\nDesligando VM " + name + ".");
+				System.out.println("\nDesligando VM '" + name + "' ...");
 
 				ISession session = manager.getSessionObject();
 
@@ -493,7 +487,7 @@ public class Programa {
 				progressBar(manager, p, 10000);
 
 				if (p.getCompleted()) {
-					System.out.println("VM " + name + " desligada.");
+					System.out.println("VM '" + name + "' desligada.");
 				}
 			}
 		}
@@ -523,7 +517,7 @@ public class Programa {
 
 	}
 
-	static boolean progressBar(VirtualBoxManager manager, IProgress p, long waitMillis) {
+	public static boolean progressBar(VirtualBoxManager manager, IProgress p, long waitMillis) {
 		long end = System.currentTimeMillis() + waitMillis;
 		while (!p.getCompleted()) {
 			// process system event queue
@@ -1018,17 +1012,13 @@ public class Programa {
 						
 						// Se a sessão estiver ativa, não será possível remover a VM.
 						ISession session = vbmtemp.getSessionObject();
-						System.out.println("ISession getState: " + session.getState());
-						
-						for (IMachine im : vBoxSVCtmp.getMachines()){
-							if (vmname.equals(im.getName())){
-//								System.out.println("VM é Ubuntu");
-								desligarVM(vbmtemp, vBoxSVCtmp, vmname);
-								// Espera 5 segundos para liberar a sessão da VM
-								Thread.sleep(5000);
-							}
+			
+						IMachine im = vBoxSVCtmp.findMachine(vmname);
+						if ( im.getState().equals(im.getState().Running)) {
+							desligarVM(vbmtemp, vBoxSVCtmp, vmname);
+							// Espera 5 segundos para liberar a sessão da VM
+							Thread.sleep(5000);							
 						}
-						
 						removerVM(vBoxSVCtmp, vmname);
 					} catch (Exception e) {
 						System.out.println("Erro.");
