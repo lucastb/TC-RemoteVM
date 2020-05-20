@@ -1,12 +1,12 @@
 package br.pucrs.acad.producao;
 
-//	feature						effort		user-loveit		revenu
+//	feature						effort		user-loveit		revenue
 //  priorizar por recurso		2			 	
 //	parâmetros					1			
 //	parametro exibir console	
 //	parametro serv arquivos		
 //	parametro lista ips			
-//	
+//	editar pool de máquinas
 
 //	Objetivo => Implementar três vms com apache e conectar nelas
 //	
@@ -93,23 +93,38 @@ public class Programa {
 	}
 
 	public static List<String> listarArquivosNoServidor(ServidorArquivos sa) {
+		
 		List<String> arquivos = new ArrayList<String>();
+		
 		if (sa.getIpServidorArquivos() != null && sa.getPastaCompartilhada() != null) {
-			SharedConnection conexaoCompartilhada = conectarServidorArquivos(sa.getIpServidorArquivos(),
-					sa.getPastaCompartilhada());
+			
+			SharedConnection conexaoCompartilhada = conectarServidorArquivos(sa.getIpServidorArquivos(),sa.getPastaCompartilhada());
+			
 			if (conexaoCompartilhada != null) {
-				SharedDirectory diretorioRaiz = new SharedDirectory(conexaoCompartilhada);
-				for (SharedFile arquivoCompartilhado : diretorioRaiz.getFiles()) {
+				
+				SharedDirectory diretorioraiz = new SharedDirectory(conexaoCompartilhada);
+				
+				for (SharedFile arquivoCompartilhado : diretorioraiz.getFiles()) {
+				
 					arquivos.add(arquivoCompartilhado.getName());
+				
 				}
+				
 				return arquivos;
+			
 			} else {
+			
 				System.out.println("Não foi possível estabelecer a conexão com o diretório compartilhado.");
+				
 				return arquivos;
 			}
+		
 		} else {
+		
 			System.out.println(
+			
 					"Não foi possível estabelecer a conexão com o diretório compartilhado. Parâmetros incorretos.");
+			
 			return arquivos;
 		}
 	}
@@ -149,9 +164,9 @@ public class Programa {
 		return manager;
 	}
 
-	/*
-	 * 14.10.2019 - API do WebService do VirtualBox nóo tem um mótodo que exibe o
-	 * espaóo livre em disco. public static long getEspacoLivreDiscoHost(IVirtualBox
+	/* * 14.10.2019 - API do WebService do VirtualBox nóo tem um mótodo que exibe o
+	 * espaco livre em disco.
+	 * public static long getEspacoLivreDiscoHost(IVirtualBox
 	 * vBoxSVC) { // 08.10.2019 - esta pegando o espaóo em disco do host local, ao
 	 * invós do remoto ISystemProperties isp = vBoxSVC.getSystemProperties();
 	 * System.out.println("getDefaultMachineFolder " +
@@ -610,9 +625,9 @@ public class Programa {
 	public static void descreverTodosAppliances(IVirtualBox vbox, String ipServidorArquivos,
 			String pastaCompartilhada) {
 
-		String formato = "%-25s%-25s%-25s%s%n";
+		String formato = "%-25s%-25s%-25s%-25s%s%n";
 
-		System.out.printf(formato, "Nome", "S.O.", "Memoria (MB)", "Nucleos de CPU");
+		System.out.printf(formato, "Arquivo", "Nome", "S.O.", "Memoria (MB)", "Nucleos de CPU");
 
 		// getAppliances retorna uma lista de nomes de Arquivos na pasta Compartilhada
 		List<String> listaAppliances = listarArquivosNoServidor(sa);
@@ -655,7 +670,7 @@ public class Programa {
 						nucleosdecpu = ivsd.getValuesByType(VirtualSystemDescriptionType.CPU,
 								VirtualSystemDescriptionValueType.Auto);
 
-						System.out.printf(formato, nome.get(0), os.get(0), memoria.get(0), nucleosdecpu.get(0));
+						System.out.printf(formato, appliancefor, nome.get(0), os.get(0), memoria.get(0), nucleosdecpu.get(0));
 
 						/*
 						 * + "\nMemória (B)  : " +
@@ -956,6 +971,7 @@ public class Programa {
 				break;
 			// Implantar Appliance
 			case 7:
+				descreverTodosComputadores();
 				// lista os appliances disponíveis
 				// Tenta pegar uma instancia que esteja rodando do VirtualBox pra detalhar os
 				// appliances
