@@ -7,6 +7,9 @@ package br.pucrs.acad.producao;
 //	parametro serv arquivos		
 //	parametro lista ips			
 //	editar pool de máquinas
+//	implantar - first fit, last fit...
+//	implantar vários. do 1º da lista ao 3 ou todos
+//	verificar memória disponível
 
 //	Objetivo => Implementar três vms com apache e conectar nelas
 //	
@@ -400,7 +403,7 @@ public class Programa {
 		// To enumerate all the virtual machines on the host, use the machines[]
 		// attribute.
 		List<IMachine> lista = vBoxSVC.getMachines();
-		System.out.println("Quantidade de Maquinas Virtuais = " + lista.size());
+		System.out.println("Quantidade de VMs = " + lista.size());
 
 		for (IMachine m : lista) {
 			System.out.println("\nVM Nome: " + m.getName());
@@ -486,7 +489,7 @@ public class Programa {
 			IMachine m = vBoxSVC.findMachine(machine);
 
 			String name = m.getName();
-			// 12.03.2020 - No futuro, alterar para verificar por outros estados da maquina virtual, antes de desligá-la.
+			// 12.03.2020 - No futuro, alterar para verificar por outros estados da VM, antes de desligá-la.
 			if (m.getState().name() != "PoweredOff") {
 
 				System.out.println("\nDesligando VM '" + name + "' ...");
@@ -1022,7 +1025,7 @@ public class Programa {
 				VirtualBoxManager vbmtemp = conectarWS(host);
 				if (vbmtemp != null) {
 					try {
-						System.out.println("Digite o nome da máquina virtual:");
+						System.out.println("Digite o nome da VM:");
 						String vmname = lerTerminal.nextLine();
 						IVirtualBox vBoxSVCtmp = vbmtemp.getVBox();
 						
@@ -1081,11 +1084,11 @@ public class Programa {
 
 				if (vbm != null) {
 					try {
-						System.out.println("Digite o nome da máquina virtual:");
+						System.out.println("Digite o nome da VM:");
 						String vmname = lerTerminal.nextLine();
 
 						ligarVM(vbm, ivb, vmname);
-//							System.out.println("Deseja exibir a tela da máquina virtual? (S/N)");
+//							System.out.println("Deseja exibir a tela da VM? (S/N)");
 //
 //							maquinavirtual = lerTerminal.nextLine();
 //
@@ -1123,7 +1126,7 @@ public class Programa {
 
 				if (vbmtemp1 != null) {
 					try {
-						System.out.println("Digite o nome da máquina virtual:");
+						System.out.println("Digite o nome da VM:");
 						String vm = lerTerminal.nextLine();
 
 						IVirtualBox vBoxSVCtmp1 = vbmtemp1.getVBox();
