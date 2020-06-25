@@ -39,7 +39,6 @@ import org.virtualbox_6_0.IMachine;
 import org.virtualbox_6_0.IProgress;
 import org.virtualbox_6_0.ISession;
 import org.virtualbox_6_0.IVirtualBox;
-import org.virtualbox_6_0.IVirtualBoxErrorInfo;
 import org.virtualbox_6_0.IVirtualSystemDescription;
 import org.virtualbox_6_0.LockType;
 import org.virtualbox_6_0.VBoxException;
@@ -55,20 +54,19 @@ import ch.swaechter.smbjwrapper.SharedFile;
 
 public class Programa {
 
-//	IMachine ISession
-//	Unlocked =
+	//	IMachine ISession
+	//	Unlocked =
 
-//	The callers session object can then be used as a sort of remote control to the VM process that
-//	was launched. It contains a console object (see ISession::console) with which the VM can be
-//	paused, stopped, snapshotted or other things.
+	//	The callers session object can then be used as a sort of remote control to the VM process that
+	//	was launched. It contains a console object (see ISession::console) with which the VM can be
+	//	paused, stopped, snapshotted or other things.
 
 	// O objeto sessão tem um objeto console.
 
-	public static String caminhoArquivo;
 	public static String ipServidorArquivos;
 	public static String pastaCompartilhada = null;
-	public static List<String> enderecosIPv4Hosts = new ArrayList<String>();
-	public static List<Computador> hosts = new ArrayList<Computador>();
+	public static List<String> enderecosIPv4Computadores = new ArrayList<String>();
+	public static List<Computador> computadores = new ArrayList<Computador>();
 	public static ServidorArquivos sa;
 	public static String formatodescricaovm = "%-15s%-15s%-15s%-15s%-10s%-10s%-10s%-20s%s%n";
 
@@ -98,38 +96,38 @@ public class Programa {
 	}
 
 	public static List<String> listarArquivosNoServidor(ServidorArquivos sa) {
-		
+
 		List<String> arquivos = new ArrayList<String>();
-		
+
 		if (sa.getIpServidorArquivos() != null && sa.getPastaCompartilhada() != null) {
-			
+
 			SharedConnection conexaoCompartilhada = conectarServidorArquivos(sa.getIpServidorArquivos(),sa.getPastaCompartilhada());
-			
+
 			if (conexaoCompartilhada != null) {
-				
+
 				SharedDirectory diretorioraiz = new SharedDirectory(conexaoCompartilhada);
-				
+
 				for (SharedFile arquivoCompartilhado : diretorioraiz.getFiles()) {
-				
+
 					arquivos.add(arquivoCompartilhado.getName());
-				
+
 				}
-				
+
 				return arquivos;
-			
+
 			} else {
-			
+
 				System.out.println("Não foi possível estabelecer a conexão com o diretório compartilhado.");
-				
+
 				return arquivos;
 			}
-		
+
 		} else {
-		
+
 			System.out.println(
-			
+
 					"Não foi possível estabelecer a conexão com o diretório compartilhado. Parâmetros incorretos.");
-			
+
 			return arquivos;
 		}
 	}
@@ -149,22 +147,24 @@ public class Programa {
 	public static VirtualBoxManager conectarWS(String ipHost) {
 
 		// Cada instância de VirtualBoxManager é um host com o VirtualBox
-		VirtualBoxManager vbmanager = VirtualBoxManager.createInstance(null);
+		VirtualBoxManager manager = VirtualBoxManager.createInstance(null);
 
 		String porta = "18083";
 		String url = "http://" + ipHost + ":" + porta;
+		//		System.out.println("url = " + url);
 		String usuario = null;
 		String senha = null;
 		// IWebsessionManager wsm = new IWebsessionManager()
 
+		// System.out.println("\nConectando em " + url + "...");
 		try {
-			vbmanager.connect(url, usuario, senha);
+			manager.connect(url, usuario, senha);
 			// System.out.println("\nCliente conectado com sucesso em " + url + ".");
 
 		} catch (VBoxException e) {
 		}
-		vbmanager.waitForEvents(0);
-		return vbmanager;
+		manager.waitForEvents(0);
+		return manager;
 	}
 
 	/* * 14.10.2019 - API do WebService do VirtualBox nóo tem um mótodo que exibe o
@@ -367,7 +367,7 @@ public class Programa {
 		}
 		return false;
 
-//		 progressBar(manager, p, 10000);
+		//		 progressBar(manager, p, 10000);
 
 	}
 
@@ -460,26 +460,26 @@ public class Programa {
 			System.out.println("Erro: " + e);
 		}
 		// System.out.println("ISession getState: " + session.getState());
-//		System.out.println("IMachine getState: " + m.getState());
-//		System.out.println("IMachine getSessionState: " + m.getSessionState() + "\n");
+		//		System.out.println("IMachine getState: " + m.getState());
+		//		System.out.println("IMachine getSessionState: " + m.getSessionState() + "\n");
 
-//		try {
-//			TimeUnit.SECONDS.sleep(30);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
+		//		try {
+		//			TimeUnit.SECONDS.sleep(30);
+		//		} catch (InterruptedException e) {
+		//			e.printStackTrace();
+		//		}
 
-//		ISession getState: Unlocked
-//		IMachine getState: PoweredOff
-//		IMachine getSessionState: Unlocked
-//
-//		ISession getState: Spawning
-//		IMachine getState: PoweredOff
-//		IMachine getSessionState: Spawning
-//
-//		ISession getState: Unlocked
-//		IMachine getState: Running
-//		IMachine getSessionState: Locked		
+		//		ISession getState: Unlocked
+		//		IMachine getState: PoweredOff
+		//		IMachine getSessionState: Unlocked
+		//
+		//		ISession getState: Spawning
+		//		IMachine getState: PoweredOff
+		//		IMachine getSessionState: Spawning
+		//
+		//		ISession getState: Unlocked
+		//		IMachine getState: Running
+		//		IMachine getSessionState: Locked		
 
 	}
 
@@ -551,7 +551,7 @@ public class Programa {
 	public static void descreverTodosComputadores() {
 		limparConsole();
 		exibirCabecalho();
-		if (!enderecosIPv4Hosts.isEmpty()) {
+		if (!enderecosIPv4Computadores.isEmpty()) {
 			String linha1 = "%-15s%-12s%-12s%-12s%-12s%-12s%-12s%-12s%s%n";
 			String linha2 = "%-15s%-12s%-12s%-12s%-12s%-12s%s%n";
 			String linha3 = "%-15s%-12s%-12s%-12s%-12s%-12s%s%n";
@@ -560,7 +560,7 @@ public class Programa {
 			System.out.printf(linha2, "", "", "total", "utilizada", "disponível", "memoria", "Operacional", "Nucleos",
 					"Threads");
 			System.out.printf(linha3, "", "", "(MB)", "(MB)", "(MB)", "(%)", "");
-			for (String ip : enderecosIPv4Hosts) {
+			for (String ip : enderecosIPv4Computadores) {
 
 				VirtualBoxManager manager = conectarWS(ip);
 				try {
@@ -607,10 +607,10 @@ public class Programa {
 						+ (h.getMemorySize() - h.getMemoryAvailable()) + " MB" + "\nMemória disponível: "
 						+ h.getMemoryAvailable() + " MB" + "\nUso de Memória: " + Math.round(c) + " %"
 						+ "\nSistema Operacional: " + h.getOperatingSystem() + "\nVersão: " + h.getOSVersion() +
-//				"\nNócleos de Processamento: " + h.getProcessorCoreCount() +
-//				"\nProcessadores Lógicos: " + h.getProcessorCount() +
-//				"\nNócleos de Processamento Online:" + h.getProcessorOnlineCoreCount() +
-//				"\nProcessadores Lógicos Online: " + h.getProcessorOnlineCount()
+						//				"\nNócleos de Processamento: " + h.getProcessorCoreCount() +
+						//				"\nProcessadores Lógicos: " + h.getProcessorCount() +
+						//				"\nNócleos de Processamento Online:" + h.getProcessorOnlineCoreCount() +
+						//				"\nProcessadores Lógicos Online: " + h.getProcessorOnlineCount()
 						"\nNúcleos de Processamento: " + h.getProcessorOnlineCoreCount() + "\nProcessadores Lógicos: "
 						+ h.getProcessorOnlineCount());
 	}
@@ -650,10 +650,10 @@ public class Programa {
 					appliance.read(caminho);
 					appliance.interpret();
 
-//					After calling this method
-//					one can inspect the virtualSystemDescriptions[] array attribute,
-//					which will then contain	one IVirtualSystemDescription
-//					for each virtual machine found in the appliance.
+					//					After calling this method
+					//					one can inspect the virtualSystemDescriptions[] array attribute,
+					//					which will then contain	one IVirtualSystemDescription
+					//					for each virtual machine found in the appliance.
 
 					List<IVirtualSystemDescription> listavsd = appliance.getVirtualSystemDescriptions();
 					List<String> nome;
@@ -662,8 +662,8 @@ public class Programa {
 					List<String> nucleosdecpu;
 
 					for (IVirtualSystemDescription ivsd : listavsd) {
-//						System.out.println("getCount: " + ivsd.getCount()); // 13
-//			            https://github.com/OpenCyberChallengePlatform/OccpAdmin/blob/master/occp/edu/uri/dfcsc/occp/OccpVBoxHV.java
+						//						System.out.println("getCount: " + ivsd.getCount()); // 13
+						//			            https://github.com/OpenCyberChallengePlatform/OccpAdmin/blob/master/occp/edu/uri/dfcsc/occp/OccpVBoxHV.java
 						nome = ivsd.getValuesByType(VirtualSystemDescriptionType.Name,
 								VirtualSystemDescriptionValueType.Original);
 						os = ivsd.getValuesByType(VirtualSystemDescriptionType.OS,
@@ -680,21 +680,21 @@ public class Programa {
 						 * ivsd.getValuesByType(VirtualSystemDescriptionType.Memory,
 						 * VirtualSystemDescriptionValueType.Original)
 						 */
-//							  + "\nImagem de Disco: " +
-//							  ivsd.getValuesByType(VirtualSystemDescriptionType.HardDiskImage,
-//							  VirtualSystemDescriptionValueType.Auto)
+						//							  + "\nImagem de Disco: " +
+						//							  ivsd.getValuesByType(VirtualSystemDescriptionType.HardDiskImage,
+						//							  VirtualSystemDescriptionValueType.Auto)
 
-//					List<String> lista = appliance.getDisks();
-//							for (String s : lista) {
-//								String[] arrOfStr = s.split("\t\t", 0);
-//								int i = 0;
-//								for (String a : arrOfStr) {
-//									i++;
-//									if (i == 2) {
-//										System.out.println("Capacidade Móxima do disco (Bytes): " + a);
-//									}
-//								}
-//							}
+						//					List<String> lista = appliance.getDisks();
+						//							for (String s : lista) {
+						//								String[] arrOfStr = s.split("\t\t", 0);
+						//								int i = 0;
+						//								for (String a : arrOfStr) {
+						//									i++;
+						//									if (i == 2) {
+						//										System.out.println("Capacidade Móxima do disco (Bytes): " + a);
+						//									}
+						//								}
+						//							}
 					}
 
 					List<String> avisos = appliance.getWarnings();
@@ -726,10 +726,10 @@ public class Programa {
 			appliance.read(caminho);
 			appliance.interpret();
 
-//			After calling this method
-//			one can inspect the virtualSystemDescriptions[] array attribute,
-//			which will then contain	one IVirtualSystemDescription
-//			for each virtual machine found in the appliance.
+			//			After calling this method
+			//			one can inspect the virtualSystemDescriptions[] array attribute,
+			//			which will then contain	one IVirtualSystemDescription
+			//			for each virtual machine found in the appliance.
 
 			List<IVirtualSystemDescription> listavsd = appliance.getVirtualSystemDescriptions();
 
@@ -737,7 +737,7 @@ public class Programa {
 				List<String> str = ivsd.getValuesByType(VirtualSystemDescriptionType.Memory,
 						VirtualSystemDescriptionValueType.Auto);
 				for (String s : str) {
-//					System.out.println("Memoria Appliance: " + s);
+					//					System.out.println("Memoria Appliance: " + s);
 					return s;
 				}
 				;
@@ -752,12 +752,13 @@ public class Programa {
 	}
 
 	public static void descreverVM(IVirtualBox vBoxSVC, String IPv4) {
-			for (IMachine m : vBoxSVC.getMachines()) {
-				System.out.printf(formatodescricaovm, IPv4, m.getName(), m.getState().toString(), m.getOSTypeId(),
-						m.getMemorySize(), m.getCPUCount(), m.getVRDEServer().getEnabled(),
-						IPv4 + ":" + m.getVRDEServer().getVRDEProperty("TCP/Ports"), m.getVRDEServer().getVRDEExtPack());
-				// m.canShowConsoleWindow() // precisa sessão
-			}
+
+		for (IMachine m : vBoxSVC.getMachines()) {
+			System.out.printf(formatodescricaovm, IPv4, m.getName(), m.getState().toString(), m.getOSTypeId(),
+					m.getMemorySize(), m.getCPUCount(), m.getVRDEServer().getEnabled(),
+					IPv4 + ":" + m.getVRDEServer().getVRDEProperty("TCP/Ports"), m.getVRDEServer().getVRDEExtPack());
+			// m.canShowConsoleWindow() // precisa sessão
+		}
 	}
 
 	public static String getTamanhoDiscoVirtualAppliance(IVirtualBox vbox, String caminho) {
@@ -853,7 +854,7 @@ public class Programa {
 		Scanner lerTerminal = new Scanner(System.in);
 
 		// Le o caminho completo e elimina possiveis aspas
-		caminhoArquivo = lerTerminal.nextLine().replace("\"", "");
+		String caminhoArquivo = lerTerminal.nextLine().replace("\"", "");
 
 		// String caminhoArquivo = lerTerminal.nextLine();
 		List<String> lista = Collections.emptyList();
@@ -883,7 +884,7 @@ public class Programa {
 				pastaCompartilhada = s.substring(s.lastIndexOf("\\") + 1);
 
 			} else {
-				enderecosIPv4Hosts.add(s);
+				enderecosIPv4Computadores.add(s);
 			}
 			linhas++;
 		}
@@ -901,14 +902,15 @@ public class Programa {
 			System.out.println("3) Editar pool de máquinas");
 			System.out.println("4) Descrever pool de máquinas");
 			System.out.println("5) Exibir endereço do servidor de arquivos");// OK
-			System.out.println("6) Listar appliances hospedados no servidor de arquivos");
+			System.out.println("6) Descrever appliances hospedados no servidor de arquivos");
 			System.out.println("7) Implantar VM");
 			System.out.println("8) Excluir VM");
-			System.out.println("9) Listar VMs");
+			System.out.println("9) Descrever VMs");
 			System.out.println("10) Ligar VM");
-			System.out.println("11) Desligar VM");
-			System.out.println("12) Exibir tela remota da VM");
-			System.out.println("13) Sair do programa");
+			System.out.println("11) Pausar VM"); // Falta implementar
+			System.out.println("12) Desligar VM");
+			System.out.println("13) Exibir tela remota da VM");
+			System.out.println("14) Sair do programa");
 			System.out.println("");
 			System.out.print("Entre o número para selecionar uma opção:\r\n");
 
@@ -923,16 +925,16 @@ public class Programa {
 				sa = new ServidorArquivos(ipServidorArquivos, pastaCompartilhada);
 
 				System.out.println("IPs: ");
-				for (String ip : enderecosIPv4Hosts) {
+				for (String ip : enderecosIPv4Computadores) {
 					System.out.println(ip);
-					hosts.add(new Computador(ip));
+					computadores.add(new Computador(ip));
 				}
 				pausa();
 				break;
 
 			case 2:
 				System.out.println("IPs cadastrados: ");
-				for (Computador c : hosts) {
+				for (Computador c : computadores) {
 					System.out.println(c.getIpv4());
 				}
 				pausa();
@@ -944,7 +946,7 @@ public class Programa {
 
 			case 5:
 				System.out.println("Diretório Compartilhado:\n\\\\" + ipServidorArquivos + "\\" + pastaCompartilhada);
-//				
+				//				
 				pausa();
 				break;
 			case 6:
@@ -952,7 +954,7 @@ public class Programa {
 				// appliances
 				// Percorre a lista dos ips em busca de appliances
 
-				for (String s : enderecosIPv4Hosts) {
+				for (String s : enderecosIPv4Computadores) {
 					VirtualBoxManager temp = conectarWS(s);
 					IVirtualBox vBoxSVC = temp.getVBox();
 
@@ -971,7 +973,7 @@ public class Programa {
 
 				pausa();
 				break;
-			// Implantar Appliance
+				// Implantar Appliance
 			case 7:
 				descreverTodosComputadores();
 				// lista os appliances disponíveis
@@ -1006,23 +1008,16 @@ public class Programa {
 
 				pausa();
 				break;
-			// Remover VM
+				// Remover VM
 			case 8:
 				System.out.printf(formatodescricaovm, "Host", "Nome", "Estado", "S.O.", "Memoria", "Nucleos", "Desktop",
 						"Endereco Desktop", "Pacote de");
 				System.out.printf(formatodescricaovm, "", "", "", "", "(MB)", "de CPU", "Remoto", "Remoto", "extensao");
 
-				for (String iptmp : enderecosIPv4Hosts) {
+				for (String iptmp : enderecosIPv4Computadores) {
 					VirtualBoxManager vbm = conectarWS(iptmp);
-					
 					IVirtualBox ivb = vbm.getVBox();
-				
-					if (ivb!=null) {
-						descreverVM(ivb, iptmp);
-					} else {
-
-					}
-					
+					descreverVM(ivb, iptmp);
 				}
 
 				Scanner lerTerminal = new Scanner(System.in);
@@ -1034,10 +1029,10 @@ public class Programa {
 						System.out.println("Digite o nome da VM:");
 						String vmname = lerTerminal.nextLine();
 						IVirtualBox vBoxSVCtmp = vbmtemp.getVBox();
-						
+
 						// Se a sessão estiver ativa, não será possível remover a VM.
 						ISession session = vbmtemp.getSessionObject();
-			
+
 						IMachine im = vBoxSVCtmp.findMachine(vmname);
 						if ( im.getState().equals(im.getState().Running)) {
 							desligarVM(vbmtemp, vBoxSVCtmp, vmname);
@@ -1055,39 +1050,27 @@ public class Programa {
 				}
 				pausa();
 				break;
-			// Listar VM
+				// Listar VM
 			case 9:
 				System.out.printf(formatodescricaovm, "Host", "Nome", "Estado", "S.O.", "Memoria", "Nucleos", "Desktop",
 						"Endereco Desktop", "Pacote de");
 				System.out.printf(formatodescricaovm, "", "", "", "", "(MB)", "de CPU", "Remoto", "Remoto", "extensao");
-				
-				List<String> hostsoffline = new ArrayList<String>();
-				
-				for (String iptmp : enderecosIPv4Hosts) {
+
+				for (String iptmp : enderecosIPv4Computadores) {
 					VirtualBoxManager vbm = conectarWS(iptmp);
 					IVirtualBox ivb = vbm.getVBox();
-					if (ivb!=null) {
-						descreverVM(ivb, iptmp);
-					} else {
-						hostsoffline.add(iptmp);
-					}
+					descreverVM(ivb, iptmp);
 				}
-				
-				System.out.println("Não foi possível acessar o(s) host(s):");
-				for (int i = 0; i < hostsoffline.size(); i++) {
-					System.out.println(hostsoffline.get(i));
-				}
-				
 				pausa();
 				break;
 
-			// Ligar VM
+				// Ligar VM
 			case 10:
 				System.out.printf(formatodescricaovm, "Host", "Nome", "Estado", "S.O.", "Memoria", "Nucleos", "Desktop",
 						"Endereco Desktop", "Pacote de");
 				System.out.printf(formatodescricaovm, "", "", "", "", "(MB)", "de CPU", "Remoto", "Remoto", "extensao");
 
-				for (String iptmp : enderecosIPv4Hosts) {
+				for (String iptmp : enderecosIPv4Computadores) {
 					VirtualBoxManager vbm = conectarWS(iptmp);
 					IVirtualBox ivb = vbm.getVBox();
 					descreverVM(ivb, iptmp);
@@ -1106,13 +1089,13 @@ public class Programa {
 						String vmname = lerTerminal.nextLine();
 
 						ligarVM(vbm, ivb, vmname);
-//							System.out.println("Deseja exibir a tela da VM? (S/N)");
-//
-//							maquinavirtual = lerTerminal.nextLine();
-//
-//							if (maquinavirtual == "S") {
-////								 exibirTelaConvidado(ipHost, porta);
-//							}
+						//							System.out.println("Deseja exibir a tela da VM? (S/N)");
+						//
+						//							maquinavirtual = lerTerminal.nextLine();
+						//
+						//							if (maquinavirtual == "S") {
+						////								 exibirTelaConvidado(ipHost, porta);
+						//							}
 					} catch (Exception e) {
 						System.out.println("Erro.");
 					}
@@ -1124,13 +1107,13 @@ public class Programa {
 				pausa();
 				break;
 
-			// Desligar VM
-			case 11:
+				// Desligar VM
+			case 12:
 				System.out.printf(formatodescricaovm, "Host", "Nome", "Estado", "S.O.", "Memoria", "Nucleos", "Desktop",
 						"Endereco Desktop", "Pacote de");
 				System.out.printf(formatodescricaovm, "", "", "", "", "(MB)", "de CPU", "Remoto", "Remoto", "extensao");
 
-				for (String iptmp : enderecosIPv4Hosts) {
+				for (String iptmp : enderecosIPv4Computadores) {
 					VirtualBoxManager vbmtemp1 = conectarWS(iptmp);
 					IVirtualBox vBoxSVCtmp1 = vbmtemp1.getVBox();
 					descreverVM(vBoxSVCtmp1, iptmp);
@@ -1159,7 +1142,7 @@ public class Programa {
 				}
 				pausa();
 				break;
-			case 12:
+			case 13:
 				Scanner scanner1 = new Scanner(System.in);
 				System.out.println("Digite o endereço IPv4 da máquina remota:");
 				String IPv4 = scanner1.nextLine();
@@ -1168,7 +1151,7 @@ public class Programa {
 				exibirTelaConvidado(IPv4, porta);
 				pausa();
 				break;
-			case 13:
+			case 14:
 				System.exit(0);
 				pausa();
 				break;
@@ -1176,29 +1159,8 @@ public class Programa {
 		}
 	}
 
-	
-	// exibe informações detalhadadas do erro
-	static void printErrorInfo(VBoxException e) {
-		System.out.println("VBox error: " + e.getMessage());
-		System.out.println("Error cause message: " + e.getCause());
-		System.out.println("Overall result code: " + Integer.toHexString(e.getResultCode()));
-		int i = 1;
-		for (IVirtualBoxErrorInfo ei = e.getVirtualBoxErrorInfo(); ei != null; ei = ei.getNext(), i++) {
-			System.out.println("Detail information #" + i);
-			System.out.println("Error mesage: " + ei.getText());
-			System.out.println("Result code:  " + Integer.toHexString(ei.getResultCode()));
-			// optional, usually provides little additional information:
-			System.out.println("Component:    " + ei.getComponent());
-			System.out.println("Interface ID: " + ei.getInterfaceID());
-		}
-	}
-
 	public static void main(String[] args) throws java.io.IOException, InterruptedException {
-		if (args.length!=0) {
-			
-		} else {
-			caminhoArquivo = "\"F:\\Perfil\\Desktop\\Hosts.txt\"";
-		}
+
 		exibirMenu();
 
 		// objetivo = alta disponibilidade de servidores web ngix com várias VMS
@@ -1210,19 +1172,19 @@ public class Programa {
 		//
 		// listarAppliances(ipServidorArquivos, pastaCompartilhada);
 
-//		VirtualBoxManager gerente = conectarWS("10.1.1.4");
+		//		VirtualBoxManager gerente = conectarWS("10.1.1.4");
 
-//		IVirtualBox vBoxSVC;
-//		if (gerente!=null) {
-//			vBoxSVC=gerente.getVBox();
-//			listarVM(vBoxSVC);
-//		}
-//		exibirTelaConvidado("10.1.1.4", "4489");
+		//		IVirtualBox vBoxSVC;
+		//		if (gerente!=null) {
+		//			vBoxSVC=gerente.getVBox();
+		//			listarVM(vBoxSVC);
+		//		}
+		//		exibirTelaConvidado("10.1.1.4", "4489");
 
-		System.out.println("\nIPs dos hosts cadastrados:" + enderecosIPv4Hosts);
+		System.out.println("\nIPs dos hosts cadastrados:" + enderecosIPv4Computadores);
 		HashMap<String, List<String>> hosts = new HashMap<>();
 
-		for (String s : enderecosIPv4Hosts) {
+		for (String s : enderecosIPv4Computadores) {
 			VirtualBoxManager manager = conectarWS(s);
 
 			// hashmap
