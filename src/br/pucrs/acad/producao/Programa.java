@@ -39,6 +39,7 @@ import org.virtualbox_6_0.IMachine;
 import org.virtualbox_6_0.IProgress;
 import org.virtualbox_6_0.ISession;
 import org.virtualbox_6_0.IVirtualBox;
+import org.virtualbox_6_0.IVirtualBoxErrorInfo;
 import org.virtualbox_6_0.IVirtualSystemDescription;
 import org.virtualbox_6_0.LockType;
 import org.virtualbox_6_0.VBoxException;
@@ -63,10 +64,11 @@ public class Programa {
 
 	// O objeto sessão tem um objeto console.
 
+	public static String caminhoArquivo;
 	public static String ipServidorArquivos;
 	public static String pastaCompartilhada = null;
-	public static List<String> enderecosIPv4Computadores = new ArrayList<String>();
-	public static List<Computador> computadores = new ArrayList<Computador>();
+	public static List<String> enderecosIPv4Hosts = new ArrayList<String>();
+	public static List<Computador> hosts = new ArrayList<Computador>();
 	public static ServidorArquivos sa;
 	public static String formatodescricaovm = "%-15s%-15s%-15s%-15s%-10s%-10s%-10s%-20s%s%n";
 
@@ -147,24 +149,22 @@ public class Programa {
 	public static VirtualBoxManager conectarWS(String ipHost) {
 
 		// Cada instância de VirtualBoxManager é um host com o VirtualBox
-		VirtualBoxManager manager = VirtualBoxManager.createInstance(null);
+		VirtualBoxManager vbmanager = VirtualBoxManager.createInstance(null);
 
 		String porta = "18083";
 		String url = "http://" + ipHost + ":" + porta;
-//		System.out.println("url = " + url);
 		String usuario = null;
 		String senha = null;
 		// IWebsessionManager wsm = new IWebsessionManager()
 
-		// System.out.println("\nConectando em " + url + "...");
 		try {
-			manager.connect(url, usuario, senha);
+			vbmanager.connect(url, usuario, senha);
 			// System.out.println("\nCliente conectado com sucesso em " + url + ".");
 
 		} catch (VBoxException e) {
 		}
-		manager.waitForEvents(0);
-		return manager;
+		vbmanager.waitForEvents(0);
+		return vbmanager;
 	}
 
 	/* * 14.10.2019 - API do WebService do VirtualBox nóo tem um mótodo que exibe o
@@ -551,7 +551,7 @@ public class Programa {
 	public static void descreverTodosComputadores() {
 		limparConsole();
 		exibirCabecalho();
-		if (!enderecosIPv4Computadores.isEmpty()) {
+		if (!enderecosIPv4Hosts.isEmpty()) {
 			String linha1 = "%-15s%-12s%-12s%-12s%-12s%-12s%-12s%-12s%s%n";
 			String linha2 = "%-15s%-12s%-12s%-12s%-12s%-12s%s%n";
 			String linha3 = "%-15s%-12s%-12s%-12s%-12s%-12s%s%n";
@@ -560,7 +560,7 @@ public class Programa {
 			System.out.printf(linha2, "", "", "total", "utilizada", "disponível", "memoria", "Operacional", "Nucleos",
 					"Threads");
 			System.out.printf(linha3, "", "", "(MB)", "(MB)", "(MB)", "(%)", "");
-			for (String ip : enderecosIPv4Computadores) {
+			for (String ip : enderecosIPv4Hosts) {
 
 				VirtualBoxManager manager = conectarWS(ip);
 				try {
@@ -752,13 +752,12 @@ public class Programa {
 	}
 
 	public static void descreverVM(IVirtualBox vBoxSVC, String IPv4) {
-
-		for (IMachine m : vBoxSVC.getMachines()) {
-			System.out.printf(formatodescricaovm, IPv4, m.getName(), m.getState().toString(), m.getOSTypeId(),
-					m.getMemorySize(), m.getCPUCount(), m.getVRDEServer().getEnabled(),
-					IPv4 + ":" + m.getVRDEServer().getVRDEProperty("TCP/Ports"), m.getVRDEServer().getVRDEExtPack());
-			// m.canShowConsoleWindow() // precisa sessão
-		}
+			for (IMachine m : vBoxSVC.getMachines()) {
+				System.out.printf(formatodescricaovm, IPv4, m.getName(), m.getState().toString(), m.getOSTypeId(),
+						m.getMemorySize(), m.getCPUCount(), m.getVRDEServer().getEnabled(),
+						IPv4 + ":" + m.getVRDEServer().getVRDEProperty("TCP/Ports"), m.getVRDEServer().getVRDEExtPack());
+				// m.canShowConsoleWindow() // precisa sessão
+			}
 	}
 
 	public static String getTamanhoDiscoVirtualAppliance(IVirtualBox vbox, String caminho) {
@@ -854,7 +853,7 @@ public class Programa {
 		Scanner lerTerminal = new Scanner(System.in);
 
 		// Le o caminho completo e elimina possiveis aspas
-		String caminhoArquivo = lerTerminal.nextLine().replace("\"", "");
+		caminhoArquivo = lerTerminal.nextLine().replace("\"", "");
 
 		// String caminhoArquivo = lerTerminal.nextLine();
 		List<String> lista = Collections.emptyList();
@@ -884,7 +883,7 @@ public class Programa {
 				pastaCompartilhada = s.substring(s.lastIndexOf("\\") + 1);
 
 			} else {
-				enderecosIPv4Computadores.add(s);
+				enderecosIPv4Hosts.add(s);
 			}
 			linhas++;
 		}
@@ -924,16 +923,16 @@ public class Programa {
 				sa = new ServidorArquivos(ipServidorArquivos, pastaCompartilhada);
 
 				System.out.println("IPs: ");
-				for (String ip : enderecosIPv4Computadores) {
+				for (String ip : enderecosIPv4Hosts) {
 					System.out.println(ip);
-					computadores.add(new Computador(ip));
+					hosts.add(new Computador(ip));
 				}
 				pausa();
 				break;
 
 			case 2:
 				System.out.println("IPs cadastrados: ");
-				for (Computador c : computadores) {
+				for (Computador c : hosts) {
 					System.out.println(c.getIpv4());
 				}
 				pausa();
@@ -953,7 +952,7 @@ public class Programa {
 				// appliances
 				// Percorre a lista dos ips em busca de appliances
 
-				for (String s : enderecosIPv4Computadores) {
+				for (String s : enderecosIPv4Hosts) {
 					VirtualBoxManager temp = conectarWS(s);
 					IVirtualBox vBoxSVC = temp.getVBox();
 
@@ -1013,10 +1012,17 @@ public class Programa {
 						"Endereco Desktop", "Pacote de");
 				System.out.printf(formatodescricaovm, "", "", "", "", "(MB)", "de CPU", "Remoto", "Remoto", "extensao");
 
-				for (String iptmp : enderecosIPv4Computadores) {
+				for (String iptmp : enderecosIPv4Hosts) {
 					VirtualBoxManager vbm = conectarWS(iptmp);
+					
 					IVirtualBox ivb = vbm.getVBox();
-					descreverVM(ivb, iptmp);
+				
+					if (ivb!=null) {
+						descreverVM(ivb, iptmp);
+					} else {
+
+					}
+					
 				}
 
 				Scanner lerTerminal = new Scanner(System.in);
@@ -1054,12 +1060,24 @@ public class Programa {
 				System.out.printf(formatodescricaovm, "Host", "Nome", "Estado", "S.O.", "Memoria", "Nucleos", "Desktop",
 						"Endereco Desktop", "Pacote de");
 				System.out.printf(formatodescricaovm, "", "", "", "", "(MB)", "de CPU", "Remoto", "Remoto", "extensao");
-
-				for (String iptmp : enderecosIPv4Computadores) {
+				
+				List<String> hostsoffline = new ArrayList<String>();
+				
+				for (String iptmp : enderecosIPv4Hosts) {
 					VirtualBoxManager vbm = conectarWS(iptmp);
 					IVirtualBox ivb = vbm.getVBox();
-					descreverVM(ivb, iptmp);
+					if (ivb!=null) {
+						descreverVM(ivb, iptmp);
+					} else {
+						hostsoffline.add(iptmp);
+					}
 				}
+				
+				System.out.println("Não foi possível acessar o(s) host(s):");
+				for (int i = 0; i < hostsoffline.size(); i++) {
+					System.out.println(hostsoffline.get(i));
+				}
+				
 				pausa();
 				break;
 
@@ -1069,7 +1087,7 @@ public class Programa {
 						"Endereco Desktop", "Pacote de");
 				System.out.printf(formatodescricaovm, "", "", "", "", "(MB)", "de CPU", "Remoto", "Remoto", "extensao");
 
-				for (String iptmp : enderecosIPv4Computadores) {
+				for (String iptmp : enderecosIPv4Hosts) {
 					VirtualBoxManager vbm = conectarWS(iptmp);
 					IVirtualBox ivb = vbm.getVBox();
 					descreverVM(ivb, iptmp);
@@ -1112,7 +1130,7 @@ public class Programa {
 						"Endereco Desktop", "Pacote de");
 				System.out.printf(formatodescricaovm, "", "", "", "", "(MB)", "de CPU", "Remoto", "Remoto", "extensao");
 
-				for (String iptmp : enderecosIPv4Computadores) {
+				for (String iptmp : enderecosIPv4Hosts) {
 					VirtualBoxManager vbmtemp1 = conectarWS(iptmp);
 					IVirtualBox vBoxSVCtmp1 = vbmtemp1.getVBox();
 					descreverVM(vBoxSVCtmp1, iptmp);
@@ -1158,8 +1176,29 @@ public class Programa {
 		}
 	}
 
-	public static void main(String[] args) throws java.io.IOException, InterruptedException {
+	
+	// exibe informações detalhadadas do erro
+	static void printErrorInfo(VBoxException e) {
+		System.out.println("VBox error: " + e.getMessage());
+		System.out.println("Error cause message: " + e.getCause());
+		System.out.println("Overall result code: " + Integer.toHexString(e.getResultCode()));
+		int i = 1;
+		for (IVirtualBoxErrorInfo ei = e.getVirtualBoxErrorInfo(); ei != null; ei = ei.getNext(), i++) {
+			System.out.println("Detail information #" + i);
+			System.out.println("Error mesage: " + ei.getText());
+			System.out.println("Result code:  " + Integer.toHexString(ei.getResultCode()));
+			// optional, usually provides little additional information:
+			System.out.println("Component:    " + ei.getComponent());
+			System.out.println("Interface ID: " + ei.getInterfaceID());
+		}
+	}
 
+	public static void main(String[] args) throws java.io.IOException, InterruptedException {
+		if (args.length!=0) {
+			
+		} else {
+			caminhoArquivo = "\"F:\\Perfil\\Desktop\\Hosts.txt\"";
+		}
 		exibirMenu();
 
 		// objetivo = alta disponibilidade de servidores web ngix com várias VMS
@@ -1180,10 +1219,10 @@ public class Programa {
 //		}
 //		exibirTelaConvidado("10.1.1.4", "4489");
 
-		System.out.println("\nIPs dos hosts cadastrados:" + enderecosIPv4Computadores);
+		System.out.println("\nIPs dos hosts cadastrados:" + enderecosIPv4Hosts);
 		HashMap<String, List<String>> hosts = new HashMap<>();
 
-		for (String s : enderecosIPv4Computadores) {
+		for (String s : enderecosIPv4Hosts) {
 			VirtualBoxManager manager = conectarWS(s);
 
 			// hashmap
