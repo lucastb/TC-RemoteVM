@@ -848,7 +848,12 @@ public class Programa {
 		}
 	}
 
-	public static void importarParametros() {
+	public static boolean importarParametros() {
+		ipServidorArquivos=null;
+		pastaCompartilhada=null;
+		// Esvazia a lista caso o usuario importe o arquivo mais de uma vez.
+		enderecosIPv4Computadores.clear();
+
 		System.out.println("\nInsira o caminho do arquivo de configuração:");
 
 		Scanner lerTerminal = new Scanner(System.in);
@@ -856,37 +861,39 @@ public class Programa {
 		// Le o caminho completo e elimina possiveis aspas
 		String caminhoArquivo = lerTerminal.nextLine().replace("\"", "");
 
-		// String caminhoArquivo = lerTerminal.nextLine();
 		List<String> lista = Collections.emptyList();
 
 		try {
 			lista = Files.readAllLines(Paths.get(caminhoArquivo), StandardCharsets.UTF_8);
+			if (lista!=null) {
+				int linhas = 0;
+				for (String s : lista) {
+					if (linhas == 0) {
+						// Acha o ip do Servidor de Arquivos
+						String pattern1 = "\\\\";
+						String pattern2 = "\\";
+						Pattern p = Pattern.compile(Pattern.quote(pattern1) + "(.*?)" + Pattern.quote(pattern2));
+						Matcher m = p.matcher(s);
+						while (m.find()) {
+							ipServidorArquivos = m.group(1);
+						}
+						p = Pattern.compile(Pattern.quote(pattern2) + "(.*?)" + Pattern.quote(pattern2));
+						m = p.matcher(s);
+						while (m.find()) {
+							pastaCompartilhada = m.group(1);
+						}
+						pastaCompartilhada = s.substring(s.lastIndexOf("\\") + 1);
+
+					} else {
+						enderecosIPv4Computadores.add(s);
+					}
+					linhas++;
+				}
+				
+			} return true;
 		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		int linhas = 0;
-		for (String s : lista) {
-			if (linhas == 0) {
-				// Acha o ip do Servidor de Arquivos
-				String pattern1 = "\\\\";
-				String pattern2 = "\\";
-				Pattern p = Pattern.compile(Pattern.quote(pattern1) + "(.*?)" + Pattern.quote(pattern2));
-				Matcher m = p.matcher(s);
-				while (m.find()) {
-					ipServidorArquivos = m.group(1);
-				}
-				p = Pattern.compile(Pattern.quote(pattern2) + "(.*?)" + Pattern.quote(pattern2));
-				m = p.matcher(s);
-				while (m.find()) {
-					pastaCompartilhada = m.group(1);
-				}
-				pastaCompartilhada = s.substring(s.lastIndexOf("\\") + 1);
-
-			} else {
-				enderecosIPv4Computadores.add(s);
-			}
-			linhas++;
+			System.out.println("Nao foi possivel ler o arquivo no caminho: " + caminhoArquivo + ".");
+			return false;
 		}
 	}
 
@@ -911,23 +918,23 @@ public class Programa {
 			System.out.println("12) Desligar VM");
 			System.out.println("13) Exibir tela remota da VM");
 			System.out.println("14) Sair do programa");
-			System.out.println("");
-			System.out.print("Entre o número para selecionar uma opção:\r\n");
+			System.out.print("\nEntre o número para selecionar uma opção:\r\n");
 
 			opcao = entrada.nextInt();
 
 			switch (opcao) {
 			case 1:
-				importarParametros();
-				System.out.println("Endereço IPv4 do Servidor de Arquivos: " + ipServidorArquivos);
-				System.out.println("Diretório Compartilhado: " + pastaCompartilhada);
+				if (importarParametros()) {
+					System.out.println("Endereço IPv4 do Servidor de Arquivos: " + ipServidorArquivos);
+					System.out.println("Diretório Compartilhado: " + pastaCompartilhada);
 
-				sa = new ServidorArquivos(ipServidorArquivos, pastaCompartilhada);
+					sa = new ServidorArquivos(ipServidorArquivos, pastaCompartilhada);
 
-				System.out.println("IPs: ");
-				for (String ip : enderecosIPv4Computadores) {
-					System.out.println(ip);
-					computadores.add(new Computador(ip));
+					System.out.println("IPs: ");
+					for (String ip : enderecosIPv4Computadores) {
+						System.out.println(ip);
+						computadores.add(new Computador(ip));
+					}
 				}
 				pausa();
 				break;
