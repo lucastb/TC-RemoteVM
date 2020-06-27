@@ -1,13 +1,14 @@
 package br.pucrs.acad.producao;
 
 //	feature						effort		user-loveit		revenue
+//	implantar - first fit, last fit...
+//	habilitar acesso remoto
 //  priorizar por recurso		2			 	
-//	parâmetros					1			
+//	parâmetros					ip=*,vmname=*-ip=1.2.3.4,vmname=*;ip=*,vmname=ubuntu*			
 //	parametro exibir console	
 //	parametro serv arquivos		
 //	parametro lista ips			
 //	editar pool de máquinas
-//	implantar - first fit, last fit...
 //	implantar vários. do 1º da lista ao 3 ou todos
 //	verificar memória disponível
 
@@ -21,11 +22,13 @@ import java.util.regex.*;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
@@ -47,7 +50,6 @@ import org.virtualbox_6_0.VirtualSystemDescriptionType;
 import org.virtualbox_6_0.VirtualSystemDescriptionValueType;
 
 import com.hierynomus.smbj.auth.AuthenticationContext;
-
 import ch.swaechter.smbjwrapper.SharedConnection;
 import ch.swaechter.smbjwrapper.SharedDirectory;
 import ch.swaechter.smbjwrapper.SharedFile;
@@ -892,7 +894,13 @@ public class Programa {
 				
 			} return true;
 		} catch (IOException e) {
-			System.out.println("Nao foi possivel ler o arquivo no caminho: " + caminhoArquivo + ".");
+			System.out.println("Nao foi possivel ler o arquivo no caminho especificado.");
+			return false;
+		} catch (InvalidPathException ipe) {
+			System.out.println("Nao foi possivel ler o arquivo no caminho especificado.");
+			return false;			
+		} catch (InputMismatchException ime) {
+			System.out.println("Nao foi possivel ler o arquivo no caminho especificado.");
 			return false;
 		}
 	}
@@ -928,8 +936,11 @@ public class Programa {
 					System.out.println("Endereço IPv4 do Servidor de Arquivos: " + ipServidorArquivos);
 					System.out.println("Diretório Compartilhado: " + pastaCompartilhada);
 
-					sa = new ServidorArquivos(ipServidorArquivos, pastaCompartilhada);
-
+					//sa = new ServidorArquivos(ipServidorArquivos, pastaCompartilhada);
+					ServidorArquivos.setIpServidorArquivos(ipServidorArquivos);
+					ServidorArquivos.setPastaCompartilhada(pastaCompartilhada);
+					
+					computadores.clear();
 					System.out.println("IPs: ");
 					for (String ip : enderecosIPv4Computadores) {
 						System.out.println(ip);
@@ -1167,7 +1178,7 @@ public class Programa {
 	}
 
 	public static void main(String[] args) throws java.io.IOException, InterruptedException {
-
+		sa = new ServidorArquivos(null, null);
 		exibirMenu();
 
 		// objetivo = alta disponibilidade de servidores web ngix com várias VMS
