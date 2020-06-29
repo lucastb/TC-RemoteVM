@@ -338,20 +338,44 @@ public class Programa {
 		}
 	}
 
-	public static boolean implantarAppliance(IVirtualBox vbox, String caminho) {
-
+	public static boolean implantarAppliance(IVirtualBox vbox, String ipServidorArquivos, String pastaCompartilhada, String arquivo) {
+		
 		// https://crunchify.com/why-and-for-what-should-i-use-enum-java-enum-examples/
-
+		 
+		if (!verificarDisponibilidadeHost(vbox, ipServidorArquivos, pastaCompartilhada, arquivo)){
+			System.out.println(arquivo + " nao pode ser implantado por falta de memoria disponivel no host"); 
+			return false;
+		 }
+		
 		try {
+
 			IAppliance appliance = vbox.createAppliance();
-			appliance.read(caminho);
+			String caminhocompleto = "\\\\" + ipServidorArquivos + "\\" + pastaCompartilhada + "\\" + arquivo;
+			IProgress progressread = appliance.read(caminhocompleto);
+//			
+//			while (!progressread.getCompleted()) {
+//				try {
+//					TimeUnit.SECONDS.sleep(5); //
+//					// System.out.println("getOperationPercent: " + p.getOperationPercent());
+//					System.out.println("Lendo Appliance : " + progressread.getPercent() + " pronto.");
+//				} catch (InterruptedException e) {
+//					System.out.println(6);
+//					System.out.println("Appliance nao pode ser lido. Erro: " + e);
+//					return false;
+//				}
+//			}
+
 			appliance.interpret();
+
+			
 			List<String> avisos = appliance.getWarnings();
+			System.out.println(9);
 			for (String s : avisos) {
 				System.out.println("Aviso: " + s);
 			}
+			
 			IProgress p = appliance.importMachines(null);
-
+			
 			while (!p.getCompleted()) {
 				try {
 					TimeUnit.SECONDS.sleep(5); //
@@ -379,7 +403,7 @@ public class Programa {
 		int a, b = 0;
 		a = Integer.parseInt(getMemoriaDisponivelHostEmMB(vBoxSVC));
 		b = Integer.parseInt(
-				getMemoriaAppliance(vBoxSVC, ipServidorArquivos, pastaCompartilhada, "Ubuntu18.04.1_1.0.ova"));
+				getMemoriaAppliance(vBoxSVC, ipServidorArquivos, pastaCompartilhada, caminho));
 
 		/*
 		 * 
@@ -485,6 +509,36 @@ public class Programa {
 
 	}
 
+	static void salvarVM(VirtualBoxManager manager, IVirtualBox vBoxSVC, String machine) {
+
+		try {
+			IMachine m = vBoxSVC.findMachine(machine);
+			
+			String name = m.getName();
+			// 12.03.2020 - No futuro, alterar para verificar por outros estados da VM, antes de desligá-la.
+			if (m.getState().name() != "PoweredOff") {
+
+				System.out.println("\nSalvando VM '" + name + "' ...");
+
+				ISession session = manager.getSessionObject();
+
+				vBoxSVC.findMachine(machine).lockMachine(session, LockType.Shared);
+
+				IConsole iConsole = session.getConsole();
+				m = session.getMachine();
+				IProgress p = m.saveState();
+
+				progressBar(manager, p, 10000);
+
+				if (p.getCompleted()) {
+					System.out.println("VM '" + name + "' salva.");
+				}
+			}}
+		catch (VBoxException e) {
+			System.out.println("Erro: " + e);
+		}
+		}
+	
 	static void desligarVM(VirtualBoxManager manager, IVirtualBox vBoxSVC, String machine) {
 
 		try {
@@ -922,7 +976,7 @@ public class Programa {
 			System.out.println("8) Excluir VM");
 			System.out.println("9) Descrever VMs");
 			System.out.println("10) Ligar VM");
-			System.out.println("11) Pausar VM"); // Falta implementar
+			System.out.println("11) Salvar VM"); // Falta implementar
 			System.out.println("12) Desligar VM");
 			System.out.println("13) Exibir tela remota da VM");
 			System.out.println("14) Sair do programa");
@@ -1012,9 +1066,9 @@ public class Programa {
 						scanner = new Scanner(System.in);
 						System.out.println("Digite o nome do arquivo:");
 						String arquivo = scanner.nextLine();
-						arquivo = "\\\\" + ipServidorArquivos + "\\" + pastaCompartilhada + "\\" + arquivo;
-						System.out.println("Arquivo = " + arquivo);
-						implantarAppliance(vBoxSVC, arquivo);
+						//arquivo = "\\\\" + ipServidorArquivos + "\\" + pastaCompartilhada + "\\" + arquivo;
+						System.out.println("Arquivo = " + "\\\\"+ipServidorArquivos + "\\" + pastaCompartilhada + "\\" + arquivo);
+						implantarAppliance(vBoxSVC, ipServidorArquivos, pastaCompartilhada, arquivo);
 					} catch (Exception e) {
 						System.out.println("Erro.");
 					}
@@ -1107,6 +1161,49 @@ public class Programa {
 						String vmname = lerTerminal.nextLine();
 
 						ligarVM(vbm, ivb, vmname);
+						//							System.out.println("Deseja exibir a tela da VM? (S/N)");
+						//
+						//							maquinavirtual = lerTerminal.nextLine();
+						//
+						//							if (maquinavirtual == "S") {
+						////								 exibirTelaConvidado(ipHost, porta);
+						//							}
+					} catch (Exception e) {
+						System.out.println("Erro.");
+					}
+					pausa();
+					break;
+				} else {
+					System.out.println("Não foi possível conectar ao computador com endereço IPv4: " + host);
+				}
+				pausa();
+				break;
+
+				// Desligar VM
+			case 11:
+				System.out.printf(formatodescricaovm, "Host", "Nome", "Estado", "S.O.", "Memoria", "Nucleos", "Desktop",
+						"Endereco Desktop", "Pacote de");
+				System.out.printf(formatodescricaovm, "", "", "", "", "(MB)", "de CPU", "Remoto", "Remoto", "extensao");
+
+				for (String iptmp : enderecosIPv4Computadores) {
+					VirtualBoxManager vbm1 = conectarWS(iptmp);
+					IVirtualBox ivb1 = vbm1.getVBox();
+					descreverVM(ivb1, iptmp);
+				}
+
+				lerTerminal = new Scanner(System.in);
+				System.out.println("Digite o endereço IPv4 do computador hóspede:");
+				host = lerTerminal.nextLine();
+
+				VirtualBoxManager vbm1 = conectarWS(host);
+				IVirtualBox ivb1 = vbm1.getVBox();
+
+				if (vbm1 != null) {
+					try {
+						System.out.println("Digite o nome da VM:");
+						String vmname = lerTerminal.nextLine();
+
+						salvarVM(vbm1, ivb1, vmname);
 						//							System.out.println("Deseja exibir a tela da VM? (S/N)");
 						//
 						//							maquinavirtual = lerTerminal.nextLine();
