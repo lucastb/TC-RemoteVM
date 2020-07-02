@@ -233,17 +233,22 @@ public class clienttest {
 		if (args.length < 1) {
 			System.out.println("Error: Must specify at least one argument.");
 			printArgs();
-		} else {
+		} 
+		else {
 			clienttest c = new clienttest();
+			
 			if (args[0].equals("show")) {
+				
 				if (args.length == 2) {
+					
 					if (args[1].equals("vms"))
 						c.showVMs();
 					else
 						System.out.println("Error: Unknown argument to \"show\": \"" + args[1] + "\".");
-				} else
-					System.out.println("Error: Missing argument to \"show\" command");
-			} else if (args[0].equals("list")) {
+				}
+				else System.out.println("Error: Missing argument to \"show\" command");
+			}
+			else if (args[0].equals("list")) {
 				if (args.length == 2) {
 					if (args[1].equals("hostinfo"))
 						c.listHostInfo();

@@ -369,7 +369,6 @@ public class Programa {
 
 			
 			List<String> avisos = appliance.getWarnings();
-			System.out.println(9);
 			for (String s : avisos) {
 				System.out.println("Aviso: " + s);
 			}
